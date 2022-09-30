@@ -1,0 +1,10 @@
+{
+   "StockIntegration": {
+     "object_owner": {
+       "container_roles":["integratedRole#"]
+     },
+     "application_user": {
+       "container_roles":["adminStock"]
+     }
+   } 
+}

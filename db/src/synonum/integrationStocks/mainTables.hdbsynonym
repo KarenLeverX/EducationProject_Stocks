@@ -1,0 +1,51 @@
+{
+  "Actions": {
+    "target": {
+      "object": "Yahoo.Actions",
+      "schema": "STOCKS_INTEGRATION_STOCKS_INTEGRATION_HDI_CONTAINER_1",
+      "database": "SYSTEMDB"
+    }
+  },
+  "HistoryData": {
+    "target": {
+      "object": "Yahoo.HistoryData",
+      "schema": "STOCKS_INTEGRATION_STOCKS_INTEGRATION_HDI_CONTAINER_1",
+      "database": "SYSTEMDB"
+    }
+  },
+  "News": {
+    "target": {
+      "object": "Yahoo.News",
+      "schema": "STOCKS_INTEGRATION_STOCKS_INTEGRATION_HDI_CONTAINER_1",
+      "database": "SYSTEMDB"
+    }
+  },
+  "StockInfo": {
+    "target": {
+      "object": "Yahoo.StockInfo",
+      "schema": "STOCKS_INTEGRATION_STOCKS_INTEGRATION_HDI_CONTAINER_1",
+      "database": "SYSTEMDB"
+    }
+  },
+  "EarningHistory": {
+    "target": {
+      "object": "Yahoo.EarningHistory",
+      "schema": "STOCKS_INTEGRATION_STOCKS_INTEGRATION_HDI_CONTAINER_1",
+      "database": "SYSTEMDB"
+    }
+  },
+  "Recommendation": {
+    "target": {
+      "object": "Yahoo.Recommendation",
+      "schema": "STOCKS_INTEGRATION_STOCKS_INTEGRATION_HDI_CONTAINER_1",
+      "database": "SYSTEMDB"
+    }
+  },
+  "BasicDataStock": {
+    "target": {
+      "object": "Nasdaq.BasicDataStock",
+      "schema": "STOCKS_INTEGRATION_STOCKS_INTEGRATION_HDI_CONTAINER_1",
+      "database": "SYSTEMDB"
+    }
+  }
+}

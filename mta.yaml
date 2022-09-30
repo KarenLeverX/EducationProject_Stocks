@@ -1,5 +1,5 @@
 ID: Stocks
-_schema-version: "2.1"
+_schema-version: '2.1'
 version: 0.0.1
 modules:
   - name: Stocks-db
@@ -10,6 +10,13 @@ modules:
       disk-quota: 256M
     requires:
       - name: Stocks-hdi-container
+        properties:
+          TARGET_CONTAINER: '~{hdi-container-name}'
+      - name: cross-container-service-1
+        group: SERVICE_REPLACEMENTS
+        properties:
+          key: StockIntegration
+          service: '~{hdi-container-name}'
   - name: Stocks-srv
     type: nodejs
     path: srv
@@ -19,11 +26,17 @@ modules:
     provides:
       - name: srv_api
         properties:
-          url: ${default-url}
+          url: '${default-url}'
     requires:
       - name: Stocks-hdi-container
 resources:
   - name: Stocks-hdi-container
     type: com.sap.xs.hdi-container
     properties:
-      hdi-container-name: ${service-name}
+      hdi-container-name: '${service-name}'
+  - name: cross-container-service-1
+    parameters:
+      service-name: KTOROSIAN-81sdzmpidiev7o3j-STOCKS_INTEGRATION-STOCKS_INTEGRATION-hdi-container
+    properties:
+      hdi-container-name: '${service-name}'
+    type: org.cloudfoundry.existing-service
