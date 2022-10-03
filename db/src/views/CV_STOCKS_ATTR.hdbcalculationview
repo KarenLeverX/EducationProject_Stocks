@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Calculation:scenario xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:Calculation="http://www.sap.com/ndb/BiModelCalculation.ecore" id="CV_STOCKS_ATTR" applyPrivilegeType="NONE" dataCategory="CUBE" schemaVersion="3.0" cacheInvalidationPeriod="NONE" enforceSqlExecution="false" outputViewType="Aggregation">
+<descriptions defaultDescription="CV_STOCKS_ATTR.hdbcalculationview"/>
+<localVariables/>
+<variableMappings/>
+<dataSources>
+  <DataSource id="BasicDataStock">
+    <resourceUri>BasicDataStock</resourceUri>
+  </DataSource>
+  <DataSource id="HistoryData">
+    <resourceUri>HistoryData</resourceUri>
+  </DataSource>
+</dataSources>
+<calculationViews>
+  <calculationView xsi:type="Calculation:JoinView" id="Join_1" cardinality="C1_N" joinType="rightOuter" optimizeJoinColumns="true">
+    <viewAttributes>
+      <viewAttribute id="Date"/>
+      <viewAttribute id="StockName"/>
+      <viewAttribute id="Open" aggregationType="sum"/>
+      <viewAttribute id="High" aggregationType="sum"/>
+      <viewAttribute id="Low" aggregationType="sum"/>
+      <viewAttribute id="Close" aggregationType="sum"/>
+      <viewAttribute id="Volume" aggregationType="sum"/>
+      <viewAttribute id="FullName"/>
+      <viewAttribute id="Country"/>
+      <viewAttribute id="Sector"/>
+      <viewAttribute id="Industry"/>
+      <viewAttribute hidden="true" id="JOIN$StockName$StockName"/>
+    </viewAttributes>
+    <calculatedViewAttributes/>
+    <input node="BasicDataStock">
+      <mapping xsi:type="Calculation:AttributeMapping" target="FullName" source="FullName"/>
+      <mapping xsi:type="Calculation:AttributeMapping" target="Country" source="Country"/>
+      <mapping xsi:type="Calculation:AttributeMapping" target="Sector" source="Sector"/>
+      <mapping xsi:type="Calculation:AttributeMapping" target="Industry" source="Industry"/>
+      <mapping xsi:type="Calculation:AttributeMapping" target="JOIN$StockName$StockName" source="StockName"/>
+    </input>
+    <input node="HistoryData">
+      <mapping xsi:type="Calculation:AttributeMapping" target="Date" source="Date"/>
+      <mapping xsi:type="Calculation:AttributeMapping" target="StockName" source="StockName"/>
+      <mapping xsi:type="Calculation:AttributeMapping" target="Open" source="Open"/>
+      <mapping xsi:type="Calculation:AttributeMapping" target="High" source="High"/>
+      <mapping xsi:type="Calculation:AttributeMapping" target="Low" source="Low"/>
+      <mapping xsi:type="Calculation:AttributeMapping" target="Close" source="Close"/>
+      <mapping xsi:type="Calculation:AttributeMapping" target="Volume" source="Volume"/>
+      <mapping xsi:type="Calculation:AttributeMapping" target="JOIN$StockName$StockName" source="StockName"/>
+    </input>
+    <joinAttribute name="JOIN$StockName$StockName"/>
+  </calculationView>
+</calculationViews>
+<logicalModel id="Join_1">
+  <attributes>
+    <attribute id="Date" order="1" displayAttribute="false" attributeHierarchyActive="false">
+      <descriptions defaultDescription="Date"/>
+      <keyMapping columnObjectName="Join_1" columnName="Date"/>
+    </attribute>
+    <attribute id="StockName" order="2" displayAttribute="false" attributeHierarchyActive="false">
+      <descriptions defaultDescription="StockName"/>
+      <keyMapping columnObjectName="Join_1" columnName="StockName"/>
+    </attribute>
+    <attribute id="FullName" order="8" displayAttribute="false" attributeHierarchyActive="false">
+      <descriptions defaultDescription="FullName"/>
+      <keyMapping columnObjectName="Join_1" columnName="FullName"/>
+    </attribute>
+    <attribute id="Country" order="9" displayAttribute="false" attributeHierarchyActive="false">
+      <descriptions defaultDescription="Country"/>
+      <keyMapping columnObjectName="Join_1" columnName="Country"/>
+    </attribute>
+    <attribute id="Sector" order="10" displayAttribute="false" attributeHierarchyActive="false">
+      <descriptions defaultDescription="Sector"/>
+      <keyMapping columnObjectName="Join_1" columnName="Sector"/>
+    </attribute>
+    <attribute id="Industry" order="11" displayAttribute="false" attributeHierarchyActive="false">
+      <descriptions defaultDescription="Industry"/>
+      <keyMapping columnObjectName="Join_1" columnName="Industry"/>
+    </attribute>
+  </attributes>
+  <calculatedAttributes/>
+  <baseMeasures>
+    <measure id="Open" order="3" aggregationType="sum" measureType="simple">
+      <descriptions defaultDescription="Open"/>
+      <measureMapping columnObjectName="Join_1" columnName="Open"/>
+    </measure>
+    <measure id="High" order="4" aggregationType="sum" measureType="simple">
+      <descriptions defaultDescription="High"/>
+      <measureMapping columnObjectName="Join_1" columnName="High"/>
+    </measure>
+    <measure id="Low" order="5" aggregationType="sum" measureType="simple">
+      <descriptions defaultDescription="Low"/>
+      <measureMapping columnObjectName="Join_1" columnName="Low"/>
+    </measure>
+    <measure id="Close" order="6" aggregationType="sum" measureType="simple">
+      <descriptions defaultDescription="Close"/>
+      <measureMapping columnObjectName="Join_1" columnName="Close"/>
+    </measure>
+    <measure id="Volume" order="7" aggregationType="sum" measureType="simple">
+      <descriptions defaultDescription="Volume"/>
+      <measureMapping columnObjectName="Join_1" columnName="Volume"/>
+    </measure>
+  </baseMeasures>
+  <calculatedMeasures/>
+  <restrictedMeasures/>
+  <localDimensions/></logicalModel>
+<layout>
+  <shapes>
+    <shape expanded="true" modelObjectName="Output" modelObjectNameSpace="MeasureGroup">
+      <upperLeftCorner x="40" y="85"/>
+    </shape>
+  
+    <shape expanded="true" modelObjectName="Join_1" modelObjectNameSpace="CalculationView">
+      <upperLeftCorner x="100" y="250"/>
+      <rectangleSize height="30" width="160"/>
+    </shape>
+    <shape modelObjectName="BasicDataStock" modelObjectNameSpace="Join_1" modelObjectType="JoinNodeInput">
+      <upperLeftCorner x="20" y="30"/>
+      <rectangleSize width="154.708984375"/>
+    </shape>
+    <shape modelObjectName="HistoryData" modelObjectNameSpace="Join_1" modelObjectType="JoinNodeInput">
+      <upperLeftCorner x="320" y="30"/>
+      <rectangleSize width="142.85302734375"/>
+    </shape>
+  </shapes>
+</layout>
+</Calculation:scenario>

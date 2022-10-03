@@ -4,7 +4,7 @@
        "container_roles":["integratedRole#"]
      },
      "application_user": {
-       "container_roles":["adminStock"]
+       "container_roles":["integratedRole"]
      }
    } 
 }
