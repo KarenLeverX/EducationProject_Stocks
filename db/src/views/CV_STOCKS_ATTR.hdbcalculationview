@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Calculation:scenario xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:Calculation="http://www.sap.com/ndb/BiModelCalculation.ecore" id="CV_STOCKS_ATTR" applyPrivilegeType="NONE" dataCategory="CUBE" schemaVersion="3.0" cacheInvalidationPeriod="NONE" enforceSqlExecution="false" outputViewType="Aggregation">
+<Calculation:scenario xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:Calculation="http://www.sap.com/ndb/BiModelCalculation.ecore" id="CV_STOCKS_ATTR" applyPrivilegeType="NONE" dataCategory="CUBE" schemaVersion="3.0" cacheInvalidationPeriod="NONE" enforceSqlExecution="false" outputViewType="Projection">
 <descriptions defaultDescription="CV_STOCKS_ATTR.hdbcalculationview"/>
 <localVariables/>
 <variableMappings/>
@@ -27,22 +27,16 @@
       <viewAttribute id="Industry"/>
       <viewAttribute hidden="true" id="JOIN$StockName$StockName"/>
     </viewAttributes>
-    <calculatedViewAttributes/>
+    <calculatedViewAttributes>
+      <calculatedViewAttribute id="FullName_Converse" datatype="VARCHAR" length="500" expressionLanguage="COLUMN_ENGINE">
+        <formula>string(&quot;FullName&quot;)</formula>
+      </calculatedViewAttribute>
+    </calculatedViewAttributes>
     <input node="BasicDataStock">
-      <mapping xsi:type="Calculation:AttributeMapping" target="FullName" source="FullName"/>
-      <mapping xsi:type="Calculation:AttributeMapping" target="Country" source="Country"/>
-      <mapping xsi:type="Calculation:AttributeMapping" target="Sector" source="Sector"/>
-      <mapping xsi:type="Calculation:AttributeMapping" target="Industry" source="Industry"/>
       <mapping xsi:type="Calculation:AttributeMapping" target="JOIN$StockName$StockName" source="StockName"/>
     </input>
     <input node="HistoryData">
-      <mapping xsi:type="Calculation:AttributeMapping" target="Date" source="Date"/>
       <mapping xsi:type="Calculation:AttributeMapping" target="StockName" source="StockName"/>
-      <mapping xsi:type="Calculation:AttributeMapping" target="Open" source="Open"/>
-      <mapping xsi:type="Calculation:AttributeMapping" target="High" source="High"/>
-      <mapping xsi:type="Calculation:AttributeMapping" target="Low" source="Low"/>
-      <mapping xsi:type="Calculation:AttributeMapping" target="Close" source="Close"/>
-      <mapping xsi:type="Calculation:AttributeMapping" target="Volume" source="Volume"/>
       <mapping xsi:type="Calculation:AttributeMapping" target="JOIN$StockName$StockName" source="StockName"/>
     </input>
     <joinAttribute name="JOIN$StockName$StockName"/>
@@ -56,23 +50,27 @@
     </attribute>
     <attribute id="StockName" order="2" displayAttribute="false" attributeHierarchyActive="false">
       <descriptions defaultDescription="StockName"/>
+      <attributeRelationship parentAttribute="Country" type="manual"/>
+      <attributeRelationship parentAttribute="Sector" type="manual"/>
+      <attributeRelationship parentAttribute="Industry" type="manual"/>
       <keyMapping columnObjectName="Join_1" columnName="StockName"/>
     </attribute>
-    <attribute id="FullName" order="8" displayAttribute="false" attributeHierarchyActive="false">
-      <descriptions defaultDescription="FullName"/>
-      <keyMapping columnObjectName="Join_1" columnName="FullName"/>
-    </attribute>
-    <attribute id="Country" order="9" displayAttribute="false" attributeHierarchyActive="false">
+    <attribute id="Country" order="8" displayAttribute="false" attributeHierarchyActive="false">
       <descriptions defaultDescription="Country"/>
       <keyMapping columnObjectName="Join_1" columnName="Country"/>
     </attribute>
-    <attribute id="Sector" order="10" displayAttribute="false" attributeHierarchyActive="false">
+    <attribute id="Sector" order="9" displayAttribute="false" attributeHierarchyActive="false">
       <descriptions defaultDescription="Sector"/>
       <keyMapping columnObjectName="Join_1" columnName="Sector"/>
     </attribute>
-    <attribute id="Industry" order="11" displayAttribute="false" attributeHierarchyActive="false">
+    <attribute id="Industry" order="10" displayAttribute="false" attributeHierarchyActive="false">
       <descriptions defaultDescription="Industry"/>
       <keyMapping columnObjectName="Join_1" columnName="Industry"/>
+    </attribute>
+  
+    <attribute id="FullName_Converse" order="11" displayAttribute="false" attributeHierarchyActive="false">
+      <descriptions defaultDescription="FullName_Converse"/>
+      <keyMapping columnObjectName="Join_1" columnName="FullName_Converse"/>
     </attribute>
   </attributes>
   <calculatedAttributes/>
@@ -113,11 +111,11 @@
     </shape>
     <shape modelObjectName="BasicDataStock" modelObjectNameSpace="Join_1" modelObjectType="JoinNodeInput">
       <upperLeftCorner x="20" y="30"/>
-      <rectangleSize width="154.708984375"/>
+      <rectangleSize width="154"/>
     </shape>
     <shape modelObjectName="HistoryData" modelObjectNameSpace="Join_1" modelObjectType="JoinNodeInput">
       <upperLeftCorner x="320" y="30"/>
-      <rectangleSize width="142.85302734375"/>
+      <rectangleSize width="142"/>
     </shape>
   </shapes>
 </layout>

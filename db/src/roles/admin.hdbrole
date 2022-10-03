@@ -1,6 +1,6 @@
 {
 	"role":{
-		"name": "adminStock",
+		"name": "admin",
 		"schema_privileges": [{
 		   "privileges": ["SELECT METADATA", 
 		    			  "SELECT CDS METADATA", 
