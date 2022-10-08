@@ -1,0 +1,40 @@
+FUNCTION "calculateProcent"( in dailly_range integer, in procentile integer )
+       RETURNS TABLE (
+       	"Date" Date,
+       	"StockName" NVARCHAR(10),
+		"Close" DEC(25,15),
+		"MaxClose" DEC(25,15),
+		"MinClose"  DEC(25,15),
+		"LagClose" DEC(10,3),
+		PrGrow  DEC(10,3)
+       )
+       LANGUAGE SQLSCRIPT 
+       SQL SECURITY INVOKER 
+       AS 
+BEGIN 
+    /*****************************
+        Write your function logic
+    ****************************/
+    DECLARE MaxDate DATE;
+    DECLARE MaxDateRange DATE;
+    DECLARE DateArray Date Array;
+    
+    lc_history = select * from "HistoryData";
+    
+    select "Date" into DateArray from :lc_history;
+    
+    select distinct max("Date") into maxdate from "HistoryData";
+    MaxDateRange = ADD_DAYS(:MaxDate, -1* :dailly_range);
+    
+    
+    RETURN
+		 SELECT			"Date",
+						"StockName",
+						"Close",
+						MAX("Close") OVER (PARTITION BY "StockName") as "MaxClose",
+						MIN("Close") OVER (PARTITION BY "StockName") as "MinClose",
+						LAG("Close", 1, "Close") OVER (PARTITION BY "StockName" ORDER BY "Date") as "LagClose",
+						round(1 - ("Close"/"LagClose"), 3) as PrGrow
+				FROM   "HistoryData" where "Date" BETWEEN  :MaxDateRange  and :MaxDate;
+
+END;

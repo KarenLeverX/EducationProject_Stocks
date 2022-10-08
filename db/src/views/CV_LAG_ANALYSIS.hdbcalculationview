@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Calculation:scenario xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:Calculation="http://www.sap.com/ndb/BiModelCalculation.ecore" xmlns:Variable="http://www.sap.com/ndb/BiModelVariable.ecore" id="CV_LAG_ANALYSIS" applyPrivilegeType="NONE" dataCategory="CUBE" schemaVersion="3.0" outputViewType="Aggregation" cacheInvalidationPeriod="NONE" enforceSqlExecution="false" defaultClient="$$client$$">
+<descriptions defaultDescription="CV_LAG_ANALISYS"/>
+<localVariables>
+  <variable id="DAILLY_RANGE" parameter="true">
+    <descriptions defaultDescription=" "/>
+    <variableProperties datatype="INTEGER" length="10">
+      <valueDomain type="empty"/>
+      <selection/>
+    </variableProperties>
+  </variable>
+</localVariables>
+<variableMappings>
+  <mapping xsi:type="Variable:VariableMapping" dataSource="calculateProcent">
+    <targetVariable name="DAILLY_RANGE" resourceUri="calculateProcent"/>
+    <localVariable>DAILLY_RANGE</localVariable>
+  </mapping>
+</variableMappings>
+<dataSources>
+  <DataSource id="calculateProcent" type="TABLE_FUNCTION">
+    <resourceUri>calculateProcent</resourceUri>
+  </DataSource>
+</dataSources>
+<calculationViews>
+  <calculationView xsi:type="Calculation:ProjectionView" id="Projection_1">
+    <viewAttributes>
+      <viewAttribute id="Date"/>
+      <viewAttribute id="StockName"/>
+      <viewAttribute id="Close"/>
+      <viewAttribute id="LagClose"/>
+    </viewAttributes>
+    <calculatedViewAttributes>
+      <calculatedViewAttribute id="PrClose" datatype="DECIMAL" length="10" scale="3" expressionLanguage="COLUMN_ENGINE">
+        <formula>round(1 - (&quot;Close&quot;/&quot;LagClose&quot;), 3)</formula>
+      </calculatedViewAttribute>
+    </calculatedViewAttributes>
+    <input node="calculateProcent"/>
+  </calculationView>
+</calculationViews>
+<logicalModel id="Projection_1">
+  <attributes>
+    <attribute id="Date" order="2" displayAttribute="false" attributeHierarchyActive="false">
+      <descriptions defaultDescription="Date"/>
+      <keyMapping columnObjectName="Projection_1" columnName="Date"/>
+    </attribute>
+    <attribute id="StockName" order="3" displayAttribute="false" attributeHierarchyActive="false">
+      <descriptions defaultDescription="StockName"/>
+      <keyMapping columnObjectName="Projection_1" columnName="StockName"/>
+    </attribute>
+  </attributes>
+  <calculatedAttributes/>
+  <baseMeasures>
+    <measure id="PrClose" order="1" aggregationType="sum" measureType="simple">
+      <descriptions defaultDescription="PrClose"/>
+      <measureMapping columnObjectName="Projection_1" columnName="PrClose"/>
+    </measure>
+    <measure id="Close" order="4" aggregationType="sum" measureType="simple">
+      <descriptions defaultDescription="Close"/>
+      <measureMapping columnObjectName="Projection_1" columnName="Close"/>
+    </measure>
+    <measure id="LagClose" order="5" aggregationType="sum" measureType="simple">
+      <descriptions defaultDescription="LagClose"/>
+      <measureMapping columnObjectName="Projection_1" columnName="LagClose"/>
+    </measure>
+  </baseMeasures>
+  <calculatedMeasures/>
+  <restrictedMeasures/>
+  <localDimensions/>
+</logicalModel>
+<layout>
+  <shapes>
+    <shape expanded="true" modelObjectName="Output" modelObjectNameSpace="MeasureGroup">
+      <upperLeftCorner x="40" y="85"/>
+    </shape>
+  
+    <shape expanded="true" modelObjectName="Projection_1" modelObjectNameSpace="CalculationView">
+      <upperLeftCorner x="-38" y="309"/>
+      <rectangleSize height="30" width="160"/>
+    </shape>
+  </shapes>
+</layout>
+</Calculation:scenario>
