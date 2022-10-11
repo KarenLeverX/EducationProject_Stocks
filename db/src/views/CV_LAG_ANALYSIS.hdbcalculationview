@@ -6,7 +6,27 @@
     <descriptions defaultDescription=" "/>
     <variableProperties datatype="INTEGER" length="10">
       <valueDomain type="empty"/>
-      <selection/>
+      <selection multiLine="false" type="Single"/>
+      <defaultRange lowValue="10"/>
+    </variableProperties>
+  </variable>
+
+  <variable id="PROCENTILE" parameter="true">
+    <descriptions defaultDescription=" "/>
+    <variableProperties datatype="DECIMAL" length="10" scale="3">
+      <valueDomain type="empty"/>
+      <selection multiLine="false" type="Single"/>
+      <defaultRange lowValue="0.875"/>
+    </variableProperties>
+  </variable>
+
+  <variable id="TREND" parameter="true">
+    <descriptions defaultDescription=""/>
+    <variableProperties datatype="VARCHAR" length="10" mandatory="false">
+      <valueDomain type="AttributeValue">
+        <attribute name="IndicatorDesc"/>
+      </valueDomain>
+      <selection multiLine="false" type="Single"/>
     </variableProperties>
   </variable>
 </localVariables>
@@ -14,6 +34,10 @@
   <mapping xsi:type="Variable:VariableMapping" dataSource="calculateProcent">
     <targetVariable name="DAILLY_RANGE" resourceUri="calculateProcent"/>
     <localVariable>DAILLY_RANGE</localVariable>
+  </mapping>
+  <mapping xsi:type="Variable:VariableMapping" dataSource="calculateProcent">
+    <targetVariable name="PROCENTILE" resourceUri="calculateProcent"/>
+    <localVariable>PROCENTILE</localVariable>
   </mapping>
 </variableMappings>
 <dataSources>
@@ -24,43 +48,219 @@
 <calculationViews>
   <calculationView xsi:type="Calculation:ProjectionView" id="Projection_1">
     <viewAttributes>
-      <viewAttribute id="Date"/>
-      <viewAttribute id="StockName"/>
+      <viewAttribute id="Date" keepFlag="true"/>
+      <viewAttribute id="StockName" keepFlag="true"/>
       <viewAttribute id="Close"/>
       <viewAttribute id="LagClose"/>
-    </viewAttributes>
+    
+      <viewAttribute id="Partition" keepFlag="true"/>
+    
+      <viewAttribute id="Procentile"/></viewAttributes>
     <calculatedViewAttributes>
       <calculatedViewAttribute id="PrClose" datatype="DECIMAL" length="10" scale="3" expressionLanguage="COLUMN_ENGINE">
-        <formula>round(1 - (&quot;Close&quot;/&quot;LagClose&quot;), 3)</formula>
+        <formula>round((((&quot;Close&quot; -&quot;LagClose&quot;)/&quot;LagClose&quot;) *100), 3)</formula>
       </calculatedViewAttribute>
     </calculatedViewAttributes>
     <input node="calculateProcent"/>
   </calculationView>
+  <calculationView xsi:type="Calculation:RankView" id="Rank_TOP">
+    <viewAttributes>
+      <viewAttribute id="Date"/>
+      <viewAttribute id="StockName"/>
+      <viewAttribute id="Close" aggregationType="sum"/>
+      <viewAttribute id="Partition" aggregationType="sum"/>
+    </viewAttributes>
+    <calculatedViewAttributes/>
+    <input node="Projection_1"/>
+    <windowFunction dynamicPartitionAttributes="false">
+      <partitionViewAttributeName>Partition</partitionViewAttributeName>
+      <partitionViewAttributeName>StockName</partitionViewAttributeName>
+      <order byViewAttributeName="Close" direction="DESC"/>
+      <rankThreshold>
+        <value>1</value>
+      </rankThreshold>
+    </windowFunction>
+  </calculationView>
+  <calculationView xsi:type="Calculation:RankView" id="Rank_BOTTOM">
+    <viewAttributes>
+      <viewAttribute id="Date"/>
+      <viewAttribute id="StockName"/>
+      <viewAttribute id="Close" aggregationType="sum"/>
+      <viewAttribute id="Partition" aggregationType="sum"/>
+    </viewAttributes>
+    <calculatedViewAttributes/>
+    <input emptyUnionBehavior="undefined" node="Projection_1"/>
+    <windowFunction dynamicPartitionAttributes="false">
+      <partitionViewAttributeName>Partition</partitionViewAttributeName>
+      <partitionViewAttributeName>StockName</partitionViewAttributeName>
+      <order byViewAttributeName="Close" direction="ASC"/>
+      <rankThreshold>
+        <value>1</value>
+      </rankThreshold>
+    </windowFunction>
+  </calculationView>
+  <calculationView xsi:type="Calculation:JoinView" id="Join_1" cardinality="C1_1" joinType="inner">
+    <viewAttributes>
+      <viewAttribute id="StockName"/>
+      <viewAttribute id="Date_BOTTOM"/>
+      <viewAttribute id="Date_TOP"/>
+      <viewAttribute id="Close_BOTTOM" aggregationType="sum"/>
+      <viewAttribute id="Close_TOP" aggregationType="sum"/>
+      <viewAttribute id="Partition" aggregationType="sum"/>
+    </viewAttributes>
+    <calculatedViewAttributes/>
+    <input node="Rank_BOTTOM">
+      <mapping xsi:type="Calculation:AttributeMapping" target="StockName" source="StockName"/>
+      <mapping xsi:type="Calculation:AttributeMapping" target="Date_BOTTOM" source="Date"/>
+      <mapping xsi:type="Calculation:AttributeMapping" target="Close_BOTTOM" source="Close"/>
+      <mapping xsi:type="Calculation:AttributeMapping" target="Partition" source="Partition"/>
+    </input>
+    <input node="Rank_TOP">
+      <mapping xsi:type="Calculation:AttributeMapping" target="Date_TOP" source="Date"/>
+      <mapping xsi:type="Calculation:AttributeMapping" target="Close_TOP" source="Close"/>
+      <mapping xsi:type="Calculation:AttributeMapping" target="StockName" source="StockName"/>
+      <mapping xsi:type="Calculation:AttributeMapping" target="Partition" source="Partition"/>
+    </input>
+    <joinAttribute name="StockName"/>
+    <joinAttribute name="Partition"/>
+  </calculationView>
+  <calculationView xsi:type="Calculation:JoinView" id="Join_2" cardinality="C1_1" joinType="leftOuter">
+    <viewAttributes>
+      <viewAttribute id="Date"/>
+      <viewAttribute id="StockName"/>
+      <viewAttribute id="Close" aggregationType="sum"/>
+      <viewAttribute id="LagClose" aggregationType="sum"/>
+      <viewAttribute id="Partition" aggregationType="sum"/>
+      <viewAttribute id="Procentile" aggregationType="sum"/>
+      <viewAttribute id="PrClose" aggregationType="sum"/>
+      <viewAttribute id="Date_BOTTOM"/>
+      <viewAttribute id="Date_TOP"/>
+      <viewAttribute id="Close_BOTTOM" aggregationType="sum"/>
+      <viewAttribute id="Close_TOP" aggregationType="sum"/>
+    </viewAttributes>
+    <calculatedViewAttributes>
+      <calculatedViewAttribute id="Indicator" datatype="INTEGER" expressionLanguage="COLUMN_ENGINE">
+        <formula>if((&quot;Date&quot;&gt;=&quot;Date_BOTTOM&quot; and &quot;Date&quot;&lt;=&quot;Date_TOP&quot;) or (&quot;Date&quot;&gt;=&quot;Date_TOP&quot; and &quot;Date&quot;&lt;=&quot;Date_BOTTOM&quot;), 1, 
+if(min(&quot;Date_BOTTOM&quot;,&quot;Date_TOP&quot;) &gt;= &quot;Date&quot;, 2, 
+if(max(&quot;Date_BOTTOM&quot;,&quot;Date_TOP&quot;) &lt;= &quot;Date&quot;, 3, 0)))</formula>
+      </calculatedViewAttribute>
+    </calculatedViewAttributes>
+    <input node="Projection_1">
+      <mapping xsi:type="Calculation:AttributeMapping" target="StockName" source="StockName"/>
+      <mapping xsi:type="Calculation:AttributeMapping" target="Partition" source="Partition"/></input>
+    <input node="Join_1">
+      <mapping xsi:type="Calculation:AttributeMapping" target="StockName" source="StockName"/>
+      <mapping xsi:type="Calculation:AttributeMapping" target="Partition" source="Partition"/>
+    </input>
+    <joinAttribute name="StockName"/>
+    <joinAttribute name="Partition"/>
+  </calculationView>
+  <calculationView xsi:type="Calculation:AggregationView" id="Aggregation_1">
+    <viewAttributes>
+      <viewAttribute id="StockName"/>
+      <viewAttribute id="Partition"/>
+      <viewAttribute id="Indicator"/>
+      <viewAttribute id="AVGClose" aggregationType="avg"/>
+    </viewAttributes>
+    <calculatedViewAttributes/>
+    <restrictedViewAttributes/>
+    <input node="Join_2">
+      <mapping xsi:type="Calculation:AttributeMapping" target="AVGClose" source="PrClose"/>
+    </input>
+  </calculationView>
+  <calculationView xsi:type="Calculation:JoinView" id="Join_3" cardinality="C1_1" dynamic="false" joinType="inner">
+    <viewAttributes>
+      <viewAttribute id="Date"/>
+      <viewAttribute id="StockName"/>
+      <viewAttribute id="Close" aggregationType="sum"/>
+      <viewAttribute id="LagClose" aggregationType="sum"/>
+      <viewAttribute id="Partition" aggregationType="sum"/>
+      <viewAttribute id="Procentile" aggregationType="sum"/>
+      <viewAttribute id="PrClose" aggregationType="sum"/>
+      <viewAttribute id="Date_BOTTOM"/>
+      <viewAttribute id="Date_TOP"/>
+      <viewAttribute id="Close_BOTTOM" aggregationType="sum"/>
+      <viewAttribute id="Close_TOP" aggregationType="sum"/>
+      <viewAttribute id="Indicator" aggregationType="sum"/>
+      <viewAttribute id="AVGClose" aggregationType="avg"/>
+    </viewAttributes>
+    <calculatedViewAttributes>
+      <calculatedViewAttribute id="IndicatorDesc" datatype="VARCHAR" length="10" expressionLanguage="COLUMN_ENGINE">
+        <formula>if(&quot;AVGClose&quot; &lt; 0 , 'Negative', 
+if(&quot;AVGClose&quot; &gt; 0, 'Positive', 'Stable'))</formula>
+      </calculatedViewAttribute>
+    </calculatedViewAttributes>
+    <input node="Join_2">
+      <mapping xsi:type="Calculation:AttributeMapping" target="StockName" source="StockName"/>
+      <mapping xsi:type="Calculation:AttributeMapping" target="Partition" source="Partition"/>
+      <mapping xsi:type="Calculation:AttributeMapping" target="Indicator" source="Indicator"/>
+    </input>
+    <input node="Aggregation_1">
+      <mapping xsi:type="Calculation:AttributeMapping" target="StockName" source="StockName"/>
+      <mapping xsi:type="Calculation:AttributeMapping" target="Partition" source="Partition"/>
+      <mapping xsi:type="Calculation:AttributeMapping" target="Indicator" source="Indicator"/>
+    </input>
+    <joinAttribute name="StockName"/>
+    <joinAttribute name="Partition"/>
+    <joinAttribute name="Indicator"/>
+  </calculationView>
 </calculationViews>
-<logicalModel id="Projection_1">
+<logicalModel id="Join_3">
   <attributes>
-    <attribute id="Date" order="2" displayAttribute="false" attributeHierarchyActive="false">
+    <attribute id="Date" order="1" displayAttribute="false" attributeHierarchyActive="false">
       <descriptions defaultDescription="Date"/>
-      <keyMapping columnObjectName="Projection_1" columnName="Date"/>
+      <keyMapping columnObjectName="Join_3" columnName="Date"/>
     </attribute>
-    <attribute id="StockName" order="3" displayAttribute="false" attributeHierarchyActive="false">
+    <attribute id="Partition" order="2" displayAttribute="false" attributeHierarchyActive="false">
+      <descriptions defaultDescription="Partition"/>
+      <keyMapping columnObjectName="Join_3" columnName="Partition"/>
+    </attribute>
+    <attribute id="Indicator" order="3" displayAttribute="false" attributeHierarchyActive="false">
+      <descriptions defaultDescription="Indicator"/>
+      <keyMapping columnObjectName="Join_3" columnName="Indicator"/>
+    </attribute>
+    <attribute id="StockName" order="4" displayAttribute="false" attributeHierarchyActive="false">
       <descriptions defaultDescription="StockName"/>
-      <keyMapping columnObjectName="Projection_1" columnName="StockName"/>
+      <keyMapping columnObjectName="Join_3" columnName="StockName"/>
+    </attribute>
+    <attribute id="Date_BOTTOM" order="5" displayAttribute="false" attributeHierarchyActive="false">
+      <descriptions defaultDescription="Date_BOTTOM"/>
+      <keyMapping columnObjectName="Join_3" columnName="Date_BOTTOM"/>
+    </attribute>
+    <attribute id="Date_TOP" order="6" displayAttribute="false" attributeHierarchyActive="false">
+      <descriptions defaultDescription="Date_TOP"/>
+      <keyMapping columnObjectName="Join_3" columnName="Date_TOP"/>
+    </attribute>
+    <attribute id="IndicatorDesc" order="7" displayAttribute="false" attributeHierarchyActive="false">
+      <descriptions defaultDescription="IndicatorDesc"/>
+      <keyMapping columnObjectName="Join_3" columnName="IndicatorDesc"/>
+    </attribute>
+    <attribute id="PrClose" order="13" displayAttribute="false" attributeHierarchyActive="false">
+      <descriptions defaultDescription="PrClose"/>
+      <keyMapping columnObjectName="Join_3" columnName="PrClose"/>
     </attribute>
   </attributes>
   <calculatedAttributes/>
   <baseMeasures>
-    <measure id="PrClose" order="1" aggregationType="sum" measureType="simple">
-      <descriptions defaultDescription="PrClose"/>
-      <measureMapping columnObjectName="Projection_1" columnName="PrClose"/>
-    </measure>
-    <measure id="Close" order="4" aggregationType="sum" measureType="simple">
+    <measure id="Close" order="8" aggregationType="sum" measureType="simple">
       <descriptions defaultDescription="Close"/>
-      <measureMapping columnObjectName="Projection_1" columnName="Close"/>
+      <measureMapping columnObjectName="Join_3" columnName="Close"/>
     </measure>
-    <measure id="LagClose" order="5" aggregationType="sum" measureType="simple">
+    <measure id="LagClose" order="9" aggregationType="sum" measureType="simple">
       <descriptions defaultDescription="LagClose"/>
-      <measureMapping columnObjectName="Projection_1" columnName="LagClose"/>
+      <measureMapping columnObjectName="Join_3" columnName="LagClose"/>
+    </measure>
+    <measure id="Close_BOTTOM" order="10" aggregationType="sum" measureType="simple">
+      <descriptions defaultDescription="Close_BOTTOM"/>
+      <measureMapping columnObjectName="Join_3" columnName="Close_BOTTOM"/>
+    </measure>
+    <measure id="Close_TOP" order="11" aggregationType="sum" measureType="simple">
+      <descriptions defaultDescription="Close_TOP"/>
+      <measureMapping columnObjectName="Join_3" columnName="Close_TOP"/>
+    </measure>
+    <measure id="Procentile" order="12" aggregationType="sum" measureType="simple">
+      <descriptions defaultDescription="Procentile"/>
+      <measureMapping columnObjectName="Join_3" columnName="Procentile"/>
     </measure>
   </baseMeasures>
   <calculatedMeasures/>
@@ -70,12 +270,64 @@
 <layout>
   <shapes>
     <shape expanded="true" modelObjectName="Output" modelObjectNameSpace="MeasureGroup">
-      <upperLeftCorner x="40" y="85"/>
+      <upperLeftCorner x="173" y="112"/>
+    
+      <rectangleSize width="160"/>
     </shape>
   
     <shape expanded="true" modelObjectName="Projection_1" modelObjectNameSpace="CalculationView">
-      <upperLeftCorner x="-38" y="309"/>
+      <upperLeftCorner x="127" y="946"/>
       <rectangleSize height="30" width="160"/>
+    </shape>
+  
+    <shape expanded="true" modelObjectName="Rank_TOP" modelObjectNameSpace="CalculationView">
+      <upperLeftCorner x="127" y="821"/>
+      <rectangleSize height="30" width="160"/>
+    </shape>
+    <shape expanded="true" modelObjectName="Rank_BOTTOM" modelObjectNameSpace="CalculationView">
+      <upperLeftCorner x="337" y="821"/>
+      <rectangleSize width="160"/>
+    </shape>
+    <shape expanded="true" modelObjectName="Join_1" modelObjectNameSpace="CalculationView">
+      <upperLeftCorner x="154" y="661"/>
+      <rectangleSize height="30" width="160"/>
+    </shape>
+    <shape modelObjectName="Rank_BOTTOM" modelObjectNameSpace="Join_1" modelObjectType="JoinNodeInput">
+      <upperLeftCorner x="20" y="30"/>
+      <rectangleSize width="151"/>
+    </shape>
+    <shape modelObjectName="Rank_TOP" modelObjectNameSpace="Join_1" modelObjectType="JoinNodeInput">
+      <upperLeftCorner x="320" y="30"/>
+      <rectangleSize width="142"/>
+    </shape>
+    <shape expanded="true" modelObjectName="Join_2" modelObjectNameSpace="CalculationView">
+      <upperLeftCorner x="112" y="501"/>
+      <rectangleSize height="30" width="160"/>
+    </shape>
+    <shape modelObjectName="Projection_1" modelObjectNameSpace="Join_2" modelObjectType="JoinNodeInput">
+      <upperLeftCorner x="20" y="30"/>
+      <rectangleSize width="142"/>
+    </shape>
+    <shape modelObjectName="Join_1" modelObjectNameSpace="Join_2" modelObjectType="JoinNodeInput">
+      <upperLeftCorner x="320" y="30"/>
+      <rectangleSize width="167"/>
+    </shape>
+  
+    <shape expanded="true" modelObjectName="Aggregation_1" modelObjectNameSpace="CalculationView">
+      <upperLeftCorner x="200" y="376"/>
+      <rectangleSize height="30" width="160"/>
+    </shape>
+    <shape expanded="true" modelObjectName="Join_3" modelObjectNameSpace="CalculationView">
+      <upperLeftCorner x="173" y="217"/>
+      <rectangleSize height="30" width="160"/>
+    </shape>
+    <shape modelObjectName="Join_2" modelObjectNameSpace="Join_3" modelObjectType="JoinNodeInput">
+      <upperLeftCorner x="20" y="30"/>
+      <rectangleSize width="167"/>
+    </shape>
+    <shape modelObjectName="Aggregation_1" modelObjectNameSpace="Join_3" modelObjectType="JoinNodeInput">
+      <upperLeftCorner x="320" y="30"/>
+      <rectangleSize width="148"/>
     </shape>
   </shapes>
 </layout>

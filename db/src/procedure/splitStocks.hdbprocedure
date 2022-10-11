@@ -15,19 +15,19 @@ BEGIN
    *************************************/
    DECLARE lv_counter BIGINT;
    DECLARE CURSOR lc_allStocks  FOR 
-					SELECT "StockName", 100 as "Counter", :IP_DAILY AS "Param" 
+					SELECT DISTINCT "StockName", TO_INT(ROUND(COUNT("Date") / :IP_DAILY,0)) as "Counter"
 					FROM "HistoryData" GROUP BY "StockName";
 						
    lt_allData = SELECT * FROM "HistoryData";
    
    FOR cur_row AS lc_allStocks DO
    --lv_counter := TO_BIGINT(cur_row."Counter");
-   lc_results = SELECT "Date", "StockName", "Close", "BinNum" FROM
+   lc_results = SELECT "Date", "StockName", ROUND("Close", 3) AS "Close", "BinNum" FROM
 				(SELECT *, 
-					BINNING(VALUE => "RowPartition", BIN_COUNT => TO_INT(cur_row."Counter")) OVER (PARTITION BY "StockName" ORDER BY "Date" ASC) AS "BinNum" FROM 
+					BINNING(VALUE => "RowPartition", BIN_COUNT => TO_INT(cur_row."Counter")) OVER (ORDER BY "Date" ASC) AS "BinNum" FROM 
 					(SELECT  "Date", "StockName", "Close" ,  
-					                ROW_NUMBER() OVER (PARTITION BY "StockName" ORDER BY "Date" ASC) AS "RowPartition" 
-					                FROM "HistoryData" WHERE "StockName" = cur_row."StockName"));
+					                ROW_NUMBER() OVER (ORDER BY "Date" ASC) AS "RowPartition" 
+					                FROM :lt_allData WHERE "StockName" = cur_row."StockName"));
                 
     IF NOT IS_EMPTY(:lc_results) THEN 
     
