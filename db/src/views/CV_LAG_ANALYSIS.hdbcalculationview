@@ -1,43 +1,42 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Calculation:scenario xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:Calculation="http://www.sap.com/ndb/BiModelCalculation.ecore" xmlns:Variable="http://www.sap.com/ndb/BiModelVariable.ecore" id="CV_LAG_ANALYSIS" applyPrivilegeType="NONE" dataCategory="CUBE" schemaVersion="3.0" outputViewType="Aggregation" cacheInvalidationPeriod="NONE" enforceSqlExecution="false" defaultClient="$$client$$">
+<Calculation:scenario xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:Calculation="http://www.sap.com/ndb/BiModelCalculation.ecore" xmlns:Variable="http://www.sap.com/ndb/BiModelVariable.ecore" id="CV_LAG_ANALYSIS" applyPrivilegeType="NONE" dataCategory="CUBE" schemaVersion="3.0" outputViewType="Aggregation" cacheInvalidationPeriod="HOURLY" enforceSqlExecution="false" defaultClient="$$client$$" cacheEnabled="true">
 <descriptions defaultDescription="CV_LAG_ANALISYS"/>
 <localVariables>
-  <variable id="DAILLY_RANGE" parameter="true">
+  <variable id="IP_DAILLY_RANGE" parameter="true">
     <descriptions defaultDescription=" "/>
-    <variableProperties datatype="INTEGER" length="10">
+    <variableProperties datatype="INTEGER" length="10" mandatory="true">
       <valueDomain type="empty"/>
       <selection multiLine="false" type="Single"/>
       <defaultRange lowValue="10"/>
     </variableProperties>
   </variable>
 
-  <variable id="PROCENTILE" parameter="true">
+  <variable id="IP_PROCENTILE" parameter="true">
     <descriptions defaultDescription=" "/>
-    <variableProperties datatype="DECIMAL" length="10" scale="3">
+    <variableProperties datatype="DECIMAL" length="10" scale="3" mandatory="true">
       <valueDomain type="empty"/>
       <selection multiLine="false" type="Single"/>
       <defaultRange lowValue="0.875"/>
     </variableProperties>
   </variable>
-
-  <variable id="TREND" parameter="true">
-    <descriptions defaultDescription=""/>
-    <variableProperties datatype="VARCHAR" length="10" mandatory="false">
+  <variable id="VAR_TREND">
+    <descriptions defaultDescription="VAR_TREND"/>
+    <variableProperties datatype="VARCHAR" length="10">
       <valueDomain type="AttributeValue">
         <attribute name="IndicatorDesc"/>
       </valueDomain>
-      <selection multiLine="false" type="Single"/>
+      <selection type="SingleValue"/>
     </variableProperties>
   </variable>
 </localVariables>
 <variableMappings>
   <mapping xsi:type="Variable:VariableMapping" dataSource="calculateProcent">
     <targetVariable name="DAILLY_RANGE" resourceUri="calculateProcent"/>
-    <localVariable>DAILLY_RANGE</localVariable>
+    <localVariable>IP_DAILLY_RANGE</localVariable>
   </mapping>
   <mapping xsi:type="Variable:VariableMapping" dataSource="calculateProcent">
     <targetVariable name="PROCENTILE" resourceUri="calculateProcent"/>
-    <localVariable>PROCENTILE</localVariable>
+    <localVariable>IP_PROCENTILE</localVariable>
   </mapping>
 </variableMappings>
 <dataSources>
@@ -168,7 +167,7 @@ if(max(&quot;Date_BOTTOM&quot;,&quot;Date_TOP&quot;) &lt;= &quot;Date&quot;, 3, 
       <mapping xsi:type="Calculation:AttributeMapping" target="AVGClose" source="PrClose"/>
     </input>
   </calculationView>
-  <calculationView xsi:type="Calculation:JoinView" id="Join_3" cardinality="C1_1" dynamic="false" joinType="inner">
+  <calculationView xsi:type="Calculation:JoinView" id="Join_3" cardinality="C1_1" dynamic="false" joinType="inner" filterExpressionLanguage="COLUMN_ENGINE">
     <viewAttributes>
       <viewAttribute id="Date"/>
       <viewAttribute id="StockName"/>
@@ -233,13 +232,9 @@ if(&quot;AVGClose&quot; &gt; 0, 'Positive', 'Stable'))</formula>
     </attribute>
     <attribute id="IndicatorDesc" order="7" displayAttribute="false" attributeHierarchyActive="false">
       <descriptions defaultDescription="IndicatorDesc"/>
+      <localVariable>VAR_TREND</localVariable>
       <keyMapping columnObjectName="Join_3" columnName="IndicatorDesc"/>
-    </attribute>
-    <attribute id="PrClose" order="13" displayAttribute="false" attributeHierarchyActive="false">
-      <descriptions defaultDescription="PrClose"/>
-      <keyMapping columnObjectName="Join_3" columnName="PrClose"/>
-    </attribute>
-  </attributes>
+    </attribute></attributes>
   <calculatedAttributes/>
   <baseMeasures>
     <measure id="Close" order="8" aggregationType="sum" measureType="simple">
@@ -261,6 +256,15 @@ if(&quot;AVGClose&quot; &gt; 0, 'Positive', 'Stable'))</formula>
     <measure id="Procentile" order="12" aggregationType="sum" measureType="simple">
       <descriptions defaultDescription="Procentile"/>
       <measureMapping columnObjectName="Join_3" columnName="Procentile"/>
+    </measure>
+  
+    <measure id="PrClose" order="13" aggregationType="sum" measureType="simple">
+      <descriptions defaultDescription="PrClose"/>
+      <measureMapping columnObjectName="Join_3" columnName="PrClose"/>
+    </measure>
+    <measure id="AVGClose" order="14" aggregationType="avg" measureType="simple">
+      <descriptions defaultDescription="AVGClose"/>
+      <measureMapping columnObjectName="Join_3" columnName="AVGClose"/>
     </measure>
   </baseMeasures>
   <calculatedMeasures/>

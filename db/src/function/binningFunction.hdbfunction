@@ -1,0 +1,20 @@
+FUNCTION "binningFunction"(in in_stockname NVARCHAR(10), in in_counter INTEGER )
+       RETURNS TABLE (
+       	"Date" Date,
+   		"StockName" NVARCHAR(30),
+   		"Close" DEC(25,15),
+   		"Partition" INTEGER
+       )
+       LANGUAGE SQLSCRIPT 
+       SQL SECURITY INVOKER AS 
+BEGIN 
+    /*****************************
+        Write your function logic
+    ****************************/
+     RETURN SELECT "Date", "StockName", ROUND("Close", 3) AS "Close", "Partition" FROM
+				(SELECT *, 
+				BINNING(VALUE => "RowPartition", BIN_COUNT => TO_INT(:in_counter)) OVER (ORDER BY "Date" ASC) AS "Partition" FROM 
+					(SELECT  "Date", "StockName", "Close" ,  
+					                ROW_NUMBER() OVER (ORDER BY "Date" ASC) AS "RowPartition" 
+					                FROM "HistoryData" WHERE "StockName" = :in_stockname));
+END;
