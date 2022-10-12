@@ -1,0 +1,8 @@
+TYPE "returnCalcPR" AS TABLE (
+       	"Date" Date,
+       	"StockName" NVARCHAR(10),
+		"Close" DEC(25,3),
+		"Partition" INTEGER,
+		"LagClose" DEC(25,3),
+		"Procentile"  DEC(25,3)
+     )
