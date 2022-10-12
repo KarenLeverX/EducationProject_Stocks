@@ -1,4 +1,4 @@
-FUNCTION "calculateProcent"( in dailly_range integer, in procentile DEC(5,3) )
+FUNCTION "mapMergecalculateProcent"( in dailly_range integer, in procentile DEC(5,3) )
        RETURNS TABLE (
        	"Date" Date,
        	"StockName" NVARCHAR(10),
@@ -15,8 +15,12 @@ BEGIN
         Write your function logic
     ****************************/
     
-    CALL "splitStocks"(:dailly_range, :lc_history);
-    
+    --CALL "splitMapMergeStocks"(:dailly_range, :lc_history);
+    lt_counter = SELECT DISTINCT "StockName", TO_INT(ROUND(COUNT("Date") / :dailly_range,0)) as "Counter"
+					FROM "HistoryData" GROUP BY "StockName";
+						
+	gt_tab = MAP_MERGE(:lt_counter, "binningFunction"(:lt_counter."StockName", :lt_counter."Counter"));
+	
     RETURN
 		 SELECT			"Date",
 						"StockName",
@@ -24,6 +28,6 @@ BEGIN
 						"Partition",
 						LAG("Close", 1, "Close") OVER (PARTITION BY "StockName", "Partition" ORDER BY "Date" ASC) as "LagClose",
 						PERCENTILE_DISC(:procentile) WITHIN GROUP (ORDER BY "Close") OVER (PARTITION BY "StockName", "Partition") AS "Procentile"
-				FROM   :lc_history ORDER BY "Date", "StockName", "Partition";
+				FROM   :gt_tab ORDER BY "Date", "StockName", "Partition";
 
 END;

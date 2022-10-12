@@ -47,12 +47,12 @@
 <calculationViews>
   <calculationView xsi:type="Calculation:ProjectionView" id="Projection_1">
     <viewAttributes>
-      <viewAttribute id="Date" keepFlag="true"/>
-      <viewAttribute id="StockName" keepFlag="true"/>
+      <viewAttribute id="Date"/>
+      <viewAttribute id="StockName"/>
       <viewAttribute id="Close"/>
       <viewAttribute id="LagClose"/>
     
-      <viewAttribute id="Partition" keepFlag="true"/>
+      <viewAttribute id="Partition"/>
     
       <viewAttribute id="Procentile"/></viewAttributes>
     <calculatedViewAttributes>
@@ -167,7 +167,7 @@ if(max(&quot;Date_BOTTOM&quot;,&quot;Date_TOP&quot;) &lt;= &quot;Date&quot;, 3, 
       <mapping xsi:type="Calculation:AttributeMapping" target="AVGClose" source="PrClose"/>
     </input>
   </calculationView>
-  <calculationView xsi:type="Calculation:JoinView" id="Join_3" cardinality="C1_1" dynamic="false" joinType="inner" filterExpressionLanguage="COLUMN_ENGINE">
+  <calculationView xsi:type="Calculation:JoinView" id="Join_3" cardinality="C1_1" dynamic="false" joinType="inner">
     <viewAttributes>
       <viewAttribute id="Date"/>
       <viewAttribute id="StockName"/>

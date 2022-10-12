@@ -1,8 +1,8 @@
 FUNCTION "binningFunction"(in in_stockname NVARCHAR(10), in in_counter INTEGER )
        RETURNS TABLE (
        	"Date" Date,
-   		"StockName" NVARCHAR(30),
-   		"Close" DEC(25,15),
+   		"StockName" NVARCHAR(10),
+   		"Close" DEC(25,3),
    		"Partition" INTEGER
        )
        LANGUAGE SQLSCRIPT 
