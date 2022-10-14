@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Calculation:scenario xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:Calculation="http://www.sap.com/ndb/BiModelCalculation.ecore" xmlns:Variable="http://www.sap.com/ndb/BiModelVariable.ecore" id="CV_LAG_ANALYSIS" applyPrivilegeType="NONE" dataCategory="CUBE" schemaVersion="3.0" outputViewType="Aggregation" cacheInvalidationPeriod="HOURLY" enforceSqlExecution="false" defaultClient="$$client$$" cacheEnabled="true">
+<Calculation:scenario xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:Calculation="http://www.sap.com/ndb/BiModelCalculation.ecore" xmlns:Variable="http://www.sap.com/ndb/BiModelVariable.ecore" id="CV_LAG_ANALYSIS" applyPrivilegeType="NONE" dataCategory="CUBE" schemaVersion="3.0" outputViewType="Aggregation" cacheInvalidationPeriod="NONE" enforceSqlExecution="false" defaultClient="$$client$$" cacheEnabled="false">
 <descriptions defaultDescription="CV_LAG_ANALISYS"/>
 <localVariables>
   <variable id="IP_DAILLY_RANGE" parameter="true">
@@ -54,12 +54,10 @@
     
       <viewAttribute id="Partition"/>
     
-      <viewAttribute id="Procentile"/></viewAttributes>
-    <calculatedViewAttributes>
-      <calculatedViewAttribute id="PrClose" datatype="DECIMAL" length="10" scale="3" expressionLanguage="COLUMN_ENGINE">
-        <formula>round((((&quot;Close&quot; -&quot;LagClose&quot;)/&quot;LagClose&quot;) *100), 3)</formula>
-      </calculatedViewAttribute>
-    </calculatedViewAttributes>
+      <viewAttribute id="Procentile"/>
+      <viewAttribute id="RDclose"/>
+    </viewAttributes>
+    <calculatedViewAttributes/>
     <input node="calculateProcent"/>
   </calculationView>
   <calculationView xsi:type="Calculation:RankView" id="Rank_TOP">
@@ -146,7 +144,9 @@ if(max(&quot;Date_BOTTOM&quot;,&quot;Date_TOP&quot;) &lt;= &quot;Date&quot;, 3, 
     </calculatedViewAttributes>
     <input node="Projection_1">
       <mapping xsi:type="Calculation:AttributeMapping" target="StockName" source="StockName"/>
-      <mapping xsi:type="Calculation:AttributeMapping" target="Partition" source="Partition"/></input>
+      <mapping xsi:type="Calculation:AttributeMapping" target="Partition" source="Partition"/>
+      <mapping xsi:type="Calculation:AttributeMapping" target="PrClose" source="RDclose"/>
+    </input>
     <input node="Join_1">
       <mapping xsi:type="Calculation:AttributeMapping" target="StockName" source="StockName"/>
       <mapping xsi:type="Calculation:AttributeMapping" target="Partition" source="Partition"/>
@@ -167,7 +167,7 @@ if(max(&quot;Date_BOTTOM&quot;,&quot;Date_TOP&quot;) &lt;= &quot;Date&quot;, 3, 
       <mapping xsi:type="Calculation:AttributeMapping" target="AVGClose" source="PrClose"/>
     </input>
   </calculationView>
-  <calculationView xsi:type="Calculation:JoinView" id="Join_3" cardinality="C1_1" dynamic="false" joinType="inner">
+  <calculationView xsi:type="Calculation:JoinView" id="Join_3" cardinality="C1_1" dynamic="false" joinType="leftOuter">
     <viewAttributes>
       <viewAttribute id="Date"/>
       <viewAttribute id="StockName"/>

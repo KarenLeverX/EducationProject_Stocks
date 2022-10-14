@@ -5,6 +5,7 @@ FUNCTION "calculateProcent"( in dailly_range integer, in procentile DEC(5,3) )
 		"Close" DEC(25,3),
 		"Partition" INTEGER,
 		"LagClose" DEC(25,3),
+		"RDclose" DEC(25,3),
 		"Procentile"  DEC(25,3)
        )
        LANGUAGE SQLSCRIPT 
@@ -18,12 +19,15 @@ BEGIN
     CALL "splitStocks"(:dailly_range, :lc_history);
     
     RETURN
-		 SELECT			"Date",
+    SELECT	  *,
+              ROUND(PERCENTILE_DISC(:procentile) WITHIN GROUP (ORDER BY "RDclose") OVER (PARTITION BY "StockName", "Partition"),3) AS "Procentile" 
+              FROM (SELECT	"Date",
 						"StockName",
 						"Close",
 						"Partition",
-						LAG("Close", 1, "Close") OVER (PARTITION BY "StockName", "Partition" ORDER BY "Date" ASC) as "LagClose",
-						PERCENTILE_DISC(:procentile) WITHIN GROUP (ORDER BY "Close") OVER (PARTITION BY "StockName", "Partition") AS "Procentile"
-				FROM   :lc_history ORDER BY "Date", "StockName", "Partition";
+						"LagClose",
+						round(((("Close" -"LagClose")/"LagClose") *100), 3) AS "RDclose"
+					FROM   :lc_history ) 
+				ORDER BY "Date", "StockName";
 
 END;

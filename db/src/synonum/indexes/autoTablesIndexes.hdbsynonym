@@ -1,0 +1,16 @@
+{
+  "TA_indexStockInfo": {
+    "target": {
+      "object": "$TA_indexStockInfo",
+      "schema": "STOCKS_INTEGRATION_STOCKS_INTEGRATION_HDI_CONTAINER_1",
+      "database": "SYSTEMDB"
+    }
+  },
+  "TA_indexStockNews": {
+    "target": {
+      "object": "$TA_indexStockNews",
+      "schema": "STOCKS_INTEGRATION_STOCKS_INTEGRATION_HDI_CONTAINER_1",
+      "database": "SYSTEMDB"
+    }
+  }
+}

@@ -1,6 +1,7 @@
 TYPE "returnSplitStocks" AS TABLE (
 	"Date" Date,
-   	"StockName" NVARCHAR(30),
-   	"Close" DEC(25,3),
+   	"StockName" NVARCHAR(10),
+   	"Close" DEC(25,15),
+   	"LagClose" DEC(25,15),
    	"Partition" INTEGER
      )
