@@ -1,0 +1,16 @@
+FUNCTION "transposeStockNews"( )
+       RETURNS TABLE (
+       	"UID" VARCHAR(500),
+		"RelatedTickets" NVARCHAR(150),
+		"PublishDate" DATE)
+       LANGUAGE SQLSCRIPT 
+       SQL SECURITY INVOKER AS 
+BEGIN 
+    /*****************************
+        Write your function logic
+    ****************************/
+     CALL "transposeStockName"(:lt_history);
+     RETURN 
+			SELECT * FROM :lt_history
+			ORDER BY "PublishDate";
+END;

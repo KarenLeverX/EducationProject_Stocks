@@ -16,7 +16,7 @@ BEGIN
         Write your function logic
     ****************************/
     
-    CALL "splitStocks"(:dailly_range, :lc_history);
+    CALL "splitStocks"(:dailly_range, :lt_history);
     
     RETURN
     SELECT	  *,
@@ -27,7 +27,7 @@ BEGIN
 						"Partition",
 						"LagClose",
 						round(((("Close" -"LagClose")/"LagClose") *100), 3) AS "RDclose"
-					FROM   :lc_history ) 
+					FROM   :lt_history ) 
 				ORDER BY "Date", "StockName";
 
 END;

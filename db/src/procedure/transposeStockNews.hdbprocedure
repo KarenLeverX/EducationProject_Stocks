@@ -1,0 +1,47 @@
+PROCEDURE "transposeStockName"(OUT gt_tab TABLE (
+												"UID" VARCHAR(500),
+												"RelatedTickets" NVARCHAR(150),
+												"PublishDate" DATE)
+	
+)
+   LANGUAGE SQLSCRIPT
+   SQL SECURITY INVOKER
+   --DEFAULT SCHEMA <default_schema_name>
+   READS SQL DATA AS
+BEGIN
+   /*************************************
+       Write your procedure logic 
+   *************************************/
+   DECLARE lc_string NVARCHAR(500);
+   DECLARE CURSOR lc_allnews  FOR 
+						SELECT DISTINCT "UID", "RelatedTickets"
+										FROM "News";
+   
+   FOR cur_row AS lc_allnews DO
+   
+   lc_string = TO_NVARCHAR(cur_row."RelatedTickets");
+   lc_splitstring = SELECT * FROM "splitString"(:lc_string, ' ');
+   
+   lt_filtered = 
+				SELECT "UID", 
+                        "PublishTime"
+                FROM "News"  WHERE "UID" = cur_row."UID";
+   
+   lc_results = 
+				SELECT TAB1."UID",
+                       TAB2."OUTPUT_SPLIT" AS "RelatedTickets", 
+                       ADD_DAYS(TO_DATE('19700101'),TO_INT(TO_INT(TAB1."PublishTime" ) / 86400))  AS "PublishDate"
+	            FROM :lt_filtered AS TAB1
+	            INNER JOIN :lc_splitstring AS TAB2 
+	            ON TAB1."UID" != '';
+                
+    IF NOT IS_EMPTY(:lc_results) THEN 
+    gt_tab = SELECT * FROM ( SELECT * FROM :gt_tab UNION ALL SELECT * FROM :lc_results);
+    END IF;
+    
+   END FOR;
+   
+   gt_tab = SELECT STRING_AGG("UID",',') AS "UID","RelatedTickets","PublishDate"
+				FROM  :gt_tab
+				GROUP BY "RelatedTickets","PublishDate";
+END;

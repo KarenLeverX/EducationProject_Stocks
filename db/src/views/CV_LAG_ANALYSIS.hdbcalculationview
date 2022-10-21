@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Calculation:scenario xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:Calculation="http://www.sap.com/ndb/BiModelCalculation.ecore" xmlns:Variable="http://www.sap.com/ndb/BiModelVariable.ecore" id="CV_LAG_ANALYSIS" applyPrivilegeType="NONE" dataCategory="CUBE" schemaVersion="3.0" outputViewType="Aggregation" cacheInvalidationPeriod="NONE" enforceSqlExecution="false" defaultClient="$$client$$" cacheEnabled="false">
+<Calculation:scenario xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:Calculation="http://www.sap.com/ndb/BiModelCalculation.ecore" xmlns:Variable="http://www.sap.com/ndb/BiModelVariable.ecore" id="CV_LAG_ANALYSIS" applyPrivilegeType="NONE" dataCategory="CUBE" schemaVersion="3.0" outputViewType="Aggregation" cacheInvalidationPeriod="HOURLY" enforceSqlExecution="false" defaultClient="$$client$$" cacheEnabled="true">
 <descriptions defaultDescription="CV_LAG_ANALISYS"/>
 <localVariables>
   <variable id="IP_DAILLY_RANGE" parameter="true">
@@ -43,9 +43,12 @@
   <DataSource id="calculateProcent" type="TABLE_FUNCTION">
     <resourceUri>calculateProcent</resourceUri>
   </DataSource>
+  <DataSource id="transposeStockNews" type="TABLE_FUNCTION">
+    <resourceUri>transposeStockNews</resourceUri>
+  </DataSource>
 </dataSources>
 <calculationViews>
-  <calculationView xsi:type="Calculation:ProjectionView" id="Projection_1">
+  <calculationView xsi:type="Calculation:ProjectionView" id="TransformHistoryData">
     <viewAttributes>
       <viewAttribute id="Date"/>
       <viewAttribute id="StockName"/>
@@ -68,7 +71,7 @@
       <viewAttribute id="Partition" aggregationType="sum"/>
     </viewAttributes>
     <calculatedViewAttributes/>
-    <input node="Projection_1"/>
+    <input node="TransformHistoryData"/>
     <windowFunction dynamicPartitionAttributes="false">
       <partitionViewAttributeName>Partition</partitionViewAttributeName>
       <partitionViewAttributeName>StockName</partitionViewAttributeName>
@@ -86,7 +89,7 @@
       <viewAttribute id="Partition" aggregationType="sum"/>
     </viewAttributes>
     <calculatedViewAttributes/>
-    <input emptyUnionBehavior="undefined" node="Projection_1"/>
+    <input emptyUnionBehavior="undefined" node="TransformHistoryData"/>
     <windowFunction dynamicPartitionAttributes="false">
       <partitionViewAttributeName>Partition</partitionViewAttributeName>
       <partitionViewAttributeName>StockName</partitionViewAttributeName>
@@ -96,7 +99,7 @@
       </rankThreshold>
     </windowFunction>
   </calculationView>
-  <calculationView xsi:type="Calculation:JoinView" id="Join_1" cardinality="C1_1" joinType="inner">
+  <calculationView xsi:type="Calculation:JoinView" id="InnerJoinRank" cardinality="C1_1" joinType="inner">
     <viewAttributes>
       <viewAttribute id="StockName"/>
       <viewAttribute id="Date_BOTTOM"/>
@@ -121,7 +124,7 @@
     <joinAttribute name="StockName"/>
     <joinAttribute name="Partition"/>
   </calculationView>
-  <calculationView xsi:type="Calculation:JoinView" id="Join_2" cardinality="C1_1" joinType="leftOuter">
+  <calculationView xsi:type="Calculation:JoinView" id="LeftJoinHistoryRank" cardinality="C1_1" joinType="leftOuter">
     <viewAttributes>
       <viewAttribute id="Date"/>
       <viewAttribute id="StockName"/>
@@ -142,19 +145,19 @@ if(min(&quot;Date_BOTTOM&quot;,&quot;Date_TOP&quot;) &gt;= &quot;Date&quot;, 2,
 if(max(&quot;Date_BOTTOM&quot;,&quot;Date_TOP&quot;) &lt;= &quot;Date&quot;, 3, 0)))</formula>
       </calculatedViewAttribute>
     </calculatedViewAttributes>
-    <input node="Projection_1">
+    <input node="TransformHistoryData">
       <mapping xsi:type="Calculation:AttributeMapping" target="StockName" source="StockName"/>
       <mapping xsi:type="Calculation:AttributeMapping" target="Partition" source="Partition"/>
       <mapping xsi:type="Calculation:AttributeMapping" target="PrClose" source="RDclose"/>
     </input>
-    <input node="Join_1">
+    <input node="InnerJoinRank">
       <mapping xsi:type="Calculation:AttributeMapping" target="StockName" source="StockName"/>
       <mapping xsi:type="Calculation:AttributeMapping" target="Partition" source="Partition"/>
     </input>
     <joinAttribute name="StockName"/>
     <joinAttribute name="Partition"/>
   </calculationView>
-  <calculationView xsi:type="Calculation:AggregationView" id="Aggregation_1">
+  <calculationView xsi:type="Calculation:AggregationView" id="ClcAVGProcent">
     <viewAttributes>
       <viewAttribute id="StockName"/>
       <viewAttribute id="Partition"/>
@@ -163,11 +166,11 @@ if(max(&quot;Date_BOTTOM&quot;,&quot;Date_TOP&quot;) &lt;= &quot;Date&quot;, 3, 
     </viewAttributes>
     <calculatedViewAttributes/>
     <restrictedViewAttributes/>
-    <input node="Join_2">
+    <input node="LeftJoinHistoryRank">
       <mapping xsi:type="Calculation:AttributeMapping" target="AVGClose" source="PrClose"/>
     </input>
   </calculationView>
-  <calculationView xsi:type="Calculation:JoinView" id="Join_3" cardinality="C1_1" dynamic="false" joinType="leftOuter">
+  <calculationView xsi:type="Calculation:JoinView" id="LeftJoinCLCWindGrow" cardinality="C1_1" dynamic="false" joinType="leftOuter">
     <viewAttributes>
       <viewAttribute id="Date"/>
       <viewAttribute id="StockName"/>
@@ -189,12 +192,12 @@ if(max(&quot;Date_BOTTOM&quot;,&quot;Date_TOP&quot;) &lt;= &quot;Date&quot;, 3, 
 if(&quot;AVGClose&quot; &gt; 0, 'Positive', 'Stable'))</formula>
       </calculatedViewAttribute>
     </calculatedViewAttributes>
-    <input node="Join_2">
+    <input node="LeftJoinHistoryRank">
       <mapping xsi:type="Calculation:AttributeMapping" target="StockName" source="StockName"/>
       <mapping xsi:type="Calculation:AttributeMapping" target="Partition" source="Partition"/>
       <mapping xsi:type="Calculation:AttributeMapping" target="Indicator" source="Indicator"/>
     </input>
-    <input node="Aggregation_1">
+    <input node="ClcAVGProcent">
       <mapping xsi:type="Calculation:AttributeMapping" target="StockName" source="StockName"/>
       <mapping xsi:type="Calculation:AttributeMapping" target="Partition" source="Partition"/>
       <mapping xsi:type="Calculation:AttributeMapping" target="Indicator" source="Indicator"/>
@@ -203,68 +206,111 @@ if(&quot;AVGClose&quot; &gt; 0, 'Positive', 'Stable'))</formula>
     <joinAttribute name="Partition"/>
     <joinAttribute name="Indicator"/>
   </calculationView>
+  <calculationView xsi:type="Calculation:ProjectionView" id="TransposeStockNews">
+    <viewAttributes>
+      <viewAttribute id="PublishDate"/>
+      <viewAttribute id="RelatedTickets"/>
+      <viewAttribute id="UID"/>
+    </viewAttributes>
+    <calculatedViewAttributes/>
+    <input node="transposeStockNews"/>
+  </calculationView>
+  <calculationView xsi:type="Calculation:JoinView" id="LeftJoinAddNews" cardinality="CN_N" joinType="leftOuter">
+    <viewAttributes>
+      <viewAttribute id="Date"/>
+      <viewAttribute id="StockName"/>
+      <viewAttribute id="Close" aggregationType="sum"/>
+      <viewAttribute id="LagClose" aggregationType="sum"/>
+      <viewAttribute id="Partition" aggregationType="sum"/>
+      <viewAttribute id="Procentile" aggregationType="sum"/>
+      <viewAttribute id="PrClose" aggregationType="sum"/>
+      <viewAttribute id="Date_BOTTOM"/>
+      <viewAttribute id="Date_TOP"/>
+      <viewAttribute id="Close_BOTTOM" aggregationType="sum"/>
+      <viewAttribute id="Close_TOP" aggregationType="sum"/>
+      <viewAttribute id="Indicator" aggregationType="sum"/>
+      <viewAttribute id="AVGClose" aggregationType="avg"/>
+      <viewAttribute id="IndicatorDesc"/>
+      <viewAttribute id="UIDNews"/>
+    </viewAttributes>
+    <calculatedViewAttributes/>
+    <input node="LeftJoinCLCWindGrow">
+      <mapping xsi:type="Calculation:AttributeMapping" target="Date" source="Date"/>
+      <mapping xsi:type="Calculation:AttributeMapping" target="StockName" source="StockName"/></input>
+    <input node="TransposeStockNews">
+      <mapping xsi:type="Calculation:AttributeMapping" target="UIDNews" source="UID"/>
+      <mapping xsi:type="Calculation:AttributeMapping" target="Date" source="PublishDate"/>
+      <mapping xsi:type="Calculation:AttributeMapping" target="StockName" source="RelatedTickets"/>
+    </input>
+    <joinAttribute name="Date"/>
+    <joinAttribute name="StockName"/>
+  </calculationView>
 </calculationViews>
-<logicalModel id="Join_3">
+<logicalModel id="LeftJoinAddNews">
   <attributes>
     <attribute id="Date" order="1" displayAttribute="false" attributeHierarchyActive="false">
       <descriptions defaultDescription="Date"/>
-      <keyMapping columnObjectName="Join_3" columnName="Date"/>
+      <keyMapping columnObjectName="LeftJoinAddNews" columnName="Date"/>
     </attribute>
-    <attribute id="Partition" order="2" displayAttribute="false" attributeHierarchyActive="false">
-      <descriptions defaultDescription="Partition"/>
-      <keyMapping columnObjectName="Join_3" columnName="Partition"/>
-    </attribute>
-    <attribute id="Indicator" order="3" displayAttribute="false" attributeHierarchyActive="false">
-      <descriptions defaultDescription="Indicator"/>
-      <keyMapping columnObjectName="Join_3" columnName="Indicator"/>
-    </attribute>
-    <attribute id="StockName" order="4" displayAttribute="false" attributeHierarchyActive="false">
+    <attribute id="StockName" order="2" displayAttribute="false" attributeHierarchyActive="false">
       <descriptions defaultDescription="StockName"/>
-      <keyMapping columnObjectName="Join_3" columnName="StockName"/>
+      <keyMapping columnObjectName="LeftJoinAddNews" columnName="StockName"/>
     </attribute>
-    <attribute id="Date_BOTTOM" order="5" displayAttribute="false" attributeHierarchyActive="false">
-      <descriptions defaultDescription="Date_BOTTOM"/>
-      <keyMapping columnObjectName="Join_3" columnName="Date_BOTTOM"/>
+    <attribute id="Partition" order="3" displayAttribute="false" attributeHierarchyActive="false">
+      <descriptions defaultDescription="Partition"/>
+      <keyMapping columnObjectName="LeftJoinAddNews" columnName="Partition"/>
     </attribute>
-    <attribute id="Date_TOP" order="6" displayAttribute="false" attributeHierarchyActive="false">
-      <descriptions defaultDescription="Date_TOP"/>
-      <keyMapping columnObjectName="Join_3" columnName="Date_TOP"/>
+    <attribute id="Indicator" order="4" displayAttribute="false" attributeHierarchyActive="false">
+      <descriptions defaultDescription="Indicator"/>
+      <keyMapping columnObjectName="LeftJoinAddNews" columnName="Indicator"/>
     </attribute>
-    <attribute id="IndicatorDesc" order="7" displayAttribute="false" attributeHierarchyActive="false">
+    <attribute id="IndicatorDesc" order="5" displayAttribute="false" attributeHierarchyActive="false">
       <descriptions defaultDescription="IndicatorDesc"/>
       <localVariable>VAR_TREND</localVariable>
-      <keyMapping columnObjectName="Join_3" columnName="IndicatorDesc"/>
-    </attribute></attributes>
+      <keyMapping columnObjectName="LeftJoinAddNews" columnName="IndicatorDesc"/>
+    </attribute>
+    <attribute id="UIDNews" order="6" displayAttribute="false" attributeHierarchyActive="false">
+      <descriptions defaultDescription="UID"/>
+      <keyMapping columnObjectName="LeftJoinAddNews" columnName="UIDNews"/>
+    </attribute>
+    <attribute id="Date_BOTTOM" order="11" displayAttribute="false" attributeHierarchyActive="false">
+      <descriptions defaultDescription="Date_BOTTOM"/>
+      <keyMapping columnObjectName="LeftJoinAddNews" columnName="Date_BOTTOM"/>
+    </attribute>
+    <attribute id="Date_TOP" order="12" displayAttribute="false" attributeHierarchyActive="false">
+      <descriptions defaultDescription="Date_TOP"/>
+      <keyMapping columnObjectName="LeftJoinAddNews" columnName="Date_TOP"/>
+    </attribute>
+  </attributes>
   <calculatedAttributes/>
   <baseMeasures>
-    <measure id="Close" order="8" aggregationType="sum" measureType="simple">
+    <measure id="Close" order="7" aggregationType="sum" measureType="simple">
       <descriptions defaultDescription="Close"/>
-      <measureMapping columnObjectName="Join_3" columnName="Close"/>
+      <measureMapping columnObjectName="LeftJoinAddNews" columnName="Close"/>
     </measure>
-    <measure id="LagClose" order="9" aggregationType="sum" measureType="simple">
+    <measure id="LagClose" order="8" aggregationType="sum" measureType="simple">
       <descriptions defaultDescription="LagClose"/>
-      <measureMapping columnObjectName="Join_3" columnName="LagClose"/>
+      <measureMapping columnObjectName="LeftJoinAddNews" columnName="LagClose"/>
     </measure>
-    <measure id="Close_BOTTOM" order="10" aggregationType="sum" measureType="simple">
-      <descriptions defaultDescription="Close_BOTTOM"/>
-      <measureMapping columnObjectName="Join_3" columnName="Close_BOTTOM"/>
-    </measure>
-    <measure id="Close_TOP" order="11" aggregationType="sum" measureType="simple">
-      <descriptions defaultDescription="Close_TOP"/>
-      <measureMapping columnObjectName="Join_3" columnName="Close_TOP"/>
-    </measure>
-    <measure id="Procentile" order="12" aggregationType="sum" measureType="simple">
+    <measure id="Procentile" order="9" aggregationType="sum" measureType="simple">
       <descriptions defaultDescription="Procentile"/>
-      <measureMapping columnObjectName="Join_3" columnName="Procentile"/>
+      <measureMapping columnObjectName="LeftJoinAddNews" columnName="Procentile"/>
     </measure>
-  
-    <measure id="PrClose" order="13" aggregationType="sum" measureType="simple">
+    <measure id="PrClose" order="10" aggregationType="sum" measureType="simple">
       <descriptions defaultDescription="PrClose"/>
-      <measureMapping columnObjectName="Join_3" columnName="PrClose"/>
+      <measureMapping columnObjectName="LeftJoinAddNews" columnName="PrClose"/>
     </measure>
-    <measure id="AVGClose" order="14" aggregationType="avg" measureType="simple">
+    <measure id="Close_BOTTOM" order="13" aggregationType="sum" measureType="simple">
+      <descriptions defaultDescription="Close_BOTTOM"/>
+      <measureMapping columnObjectName="LeftJoinAddNews" columnName="Close_BOTTOM"/>
+    </measure>
+    <measure id="Close_TOP" order="14" aggregationType="sum" measureType="simple">
+      <descriptions defaultDescription="Close_TOP"/>
+      <measureMapping columnObjectName="LeftJoinAddNews" columnName="Close_TOP"/>
+    </measure>
+    <measure id="AVGClose" order="15" aggregationType="avg" measureType="simple">
       <descriptions defaultDescription="AVGClose"/>
-      <measureMapping columnObjectName="Join_3" columnName="AVGClose"/>
+      <measureMapping columnObjectName="LeftJoinAddNews" columnName="AVGClose"/>
     </measure>
   </baseMeasures>
   <calculatedMeasures/>
@@ -274,64 +320,81 @@ if(&quot;AVGClose&quot; &gt; 0, 'Positive', 'Stable'))</formula>
 <layout>
   <shapes>
     <shape expanded="true" modelObjectName="Output" modelObjectNameSpace="MeasureGroup">
-      <upperLeftCorner x="173" y="112"/>
+      <upperLeftCorner x="239" y="112"/>
     
       <rectangleSize width="160"/>
     </shape>
   
-    <shape expanded="true" modelObjectName="Projection_1" modelObjectNameSpace="CalculationView">
-      <upperLeftCorner x="127" y="946"/>
+    <shape expanded="true" modelObjectName="TransformHistoryData" modelObjectNameSpace="CalculationView">
+      <upperLeftCorner x="196" y="1106"/>
       <rectangleSize height="30" width="160"/>
     </shape>
   
     <shape expanded="true" modelObjectName="Rank_TOP" modelObjectNameSpace="CalculationView">
-      <upperLeftCorner x="127" y="821"/>
+      <upperLeftCorner x="196" y="981"/>
       <rectangleSize height="30" width="160"/>
     </shape>
     <shape expanded="true" modelObjectName="Rank_BOTTOM" modelObjectNameSpace="CalculationView">
-      <upperLeftCorner x="337" y="821"/>
+      <upperLeftCorner x="406" y="981"/>
       <rectangleSize width="160"/>
     </shape>
-    <shape expanded="true" modelObjectName="Join_1" modelObjectNameSpace="CalculationView">
-      <upperLeftCorner x="154" y="661"/>
+    <shape expanded="true" modelObjectName="InnerJoinRank" modelObjectNameSpace="CalculationView">
+      <upperLeftCorner x="223" y="821"/>
       <rectangleSize height="30" width="160"/>
     </shape>
-    <shape modelObjectName="Rank_BOTTOM" modelObjectNameSpace="Join_1" modelObjectType="JoinNodeInput">
+    <shape modelObjectName="Rank_BOTTOM" modelObjectNameSpace="InnerJoinRank" modelObjectType="JoinNodeInput">
       <upperLeftCorner x="20" y="30"/>
       <rectangleSize width="151"/>
     </shape>
-    <shape modelObjectName="Rank_TOP" modelObjectNameSpace="Join_1" modelObjectType="JoinNodeInput">
+    <shape modelObjectName="Rank_TOP" modelObjectNameSpace="InnerJoinRank" modelObjectType="JoinNodeInput">
       <upperLeftCorner x="320" y="30"/>
       <rectangleSize width="142"/>
     </shape>
-    <shape expanded="true" modelObjectName="Join_2" modelObjectNameSpace="CalculationView">
-      <upperLeftCorner x="112" y="501"/>
+    <shape expanded="true" modelObjectName="LeftJoinHistoryRank" modelObjectNameSpace="CalculationView">
+      <upperLeftCorner x="164" y="661"/>
       <rectangleSize height="30" width="160"/>
     </shape>
-    <shape modelObjectName="Projection_1" modelObjectNameSpace="Join_2" modelObjectType="JoinNodeInput">
+    <shape modelObjectName="TransformHistoryData" modelObjectNameSpace="LeftJoinHistoryRank" modelObjectType="JoinNodeInput">
       <upperLeftCorner x="20" y="30"/>
       <rectangleSize width="142"/>
     </shape>
-    <shape modelObjectName="Join_1" modelObjectNameSpace="Join_2" modelObjectType="JoinNodeInput">
+    <shape modelObjectName="InnerJoinRank" modelObjectNameSpace="LeftJoinHistoryRank" modelObjectType="JoinNodeInput">
       <upperLeftCorner x="320" y="30"/>
       <rectangleSize width="167"/>
     </shape>
   
-    <shape expanded="true" modelObjectName="Aggregation_1" modelObjectNameSpace="CalculationView">
-      <upperLeftCorner x="200" y="376"/>
+    <shape expanded="true" modelObjectName="ClcAVGProcent" modelObjectNameSpace="CalculationView">
+      <upperLeftCorner x="191" y="536"/>
       <rectangleSize height="30" width="160"/>
     </shape>
-    <shape expanded="true" modelObjectName="Join_3" modelObjectNameSpace="CalculationView">
-      <upperLeftCorner x="173" y="217"/>
-      <rectangleSize height="30" width="160"/>
+    <shape expanded="true" modelObjectName="LeftJoinCLCWindGrow" modelObjectNameSpace="CalculationView">
+      <upperLeftCorner x="92" y="376"/>
+      <rectangleSize height="30" width="170"/>
     </shape>
-    <shape modelObjectName="Join_2" modelObjectNameSpace="Join_3" modelObjectType="JoinNodeInput">
+    <shape modelObjectName="LeftJoinHistoryRank" modelObjectNameSpace="LeftJoinCLCWindGrow" modelObjectType="JoinNodeInput">
       <upperLeftCorner x="20" y="30"/>
       <rectangleSize width="167"/>
     </shape>
-    <shape modelObjectName="Aggregation_1" modelObjectNameSpace="Join_3" modelObjectType="JoinNodeInput">
+    <shape modelObjectName="ClcAVGProcent" modelObjectNameSpace="LeftJoinCLCWindGrow" modelObjectType="JoinNodeInput">
       <upperLeftCorner x="320" y="30"/>
       <rectangleSize width="148"/>
+    </shape>
+  
+    <shape expanded="true" modelObjectName="TransposeStockNews" modelObjectNameSpace="CalculationView">
+      <upperLeftCorner x="312" y="376"/>
+      <rectangleSize height="30" width="194"/>
+    </shape>
+    <shape expanded="true" modelObjectName="LeftJoinAddNews" modelObjectNameSpace="CalculationView">
+      <upperLeftCorner x="239" y="217"/>
+      <rectangleSize height="30" width="160"/>
+    </shape>
+    <shape modelObjectName="LeftJoinCLCWindGrow" modelObjectNameSpace="LeftJoinAddNews" modelObjectType="JoinNodeInput">
+      <upperLeftCorner x="20" y="30"/>
+      <rectangleSize width="195"/>
+    </shape>
+    <shape modelObjectName="TransposeStockNews" modelObjectNameSpace="LeftJoinAddNews" modelObjectType="JoinNodeInput">
+      <upperLeftCorner x="320" y="30"/>
+      <rectangleSize width="188"/>
     </shape>
   </shapes>
 </layout>
