@@ -1,0 +1,13 @@
+{
+	"role": {
+		"name":"accessForCV",
+		"schema_privileges":[{
+			"privileges": [ "SELECT"]
+			}],
+		"schema_analytic_privileges": [
+            {
+                "privileges":[ "accessForALLCVs::accessAllCVs" ]
+            }]   
+		
+	}
+}

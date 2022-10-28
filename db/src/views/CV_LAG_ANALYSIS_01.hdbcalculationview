@@ -1,0 +1,194 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Calculation:scenario xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:Calculation="http://www.sap.com/ndb/BiModelCalculation.ecore" xmlns:Variable="http://www.sap.com/ndb/BiModelVariable.ecore" id="CV_LAG_ANALYSIS_01" applyPrivilegeType="SQL_ANALYTIC_PRIVILEGE" dataCategory="CUBE" schemaVersion="3.0" outputViewType="Aggregation" cacheInvalidationPeriod="NONE" enforceSqlExecution="false">
+<descriptions defaultDescription="CV_LAG_ANALYSIS_01.hdbcalculationview"/>
+<localVariables>
+  <variable id="PROCENTILE" parameter="true">
+    <descriptions defaultDescription=" "/>
+    <variableProperties datatype="DECIMAL" length="5">
+      <valueDomain type="empty"/>
+      <selection multiLine="false" type="Single"/>
+      <defaultRange lowValue="0.875"/>
+    </variableProperties>
+  </variable>
+
+  <variable id="PRONCENTILE_FILTER" parameter="true">
+    <descriptions defaultDescription=""/>
+    <variableProperties datatype="VARCHAR" length="10" mandatory="false">
+      <valueDomain type="empty"/>
+      <selection multiLine="false" type="Single"/>
+      <defaultRange lowValue="NO"/>
+    </variableProperties>
+  </variable>
+</localVariables>
+<variableMappings>
+  <mapping xsi:type="Variable:VariableMapping" dataSource="calculateFlexWindowGrow">
+    <targetVariable name="PROCENTILE" resourceUri="calculateFlexWindowGrow"/>
+    <localVariable>PROCENTILE</localVariable>
+  </mapping>
+</variableMappings>
+<dataSources>
+  <DataSource id="calculateFlexWindowGrow" type="TABLE_FUNCTION">
+    <resourceUri>calculateFlexWindowGrow</resourceUri>
+  </DataSource>
+  <DataSource id="TransformStockNews">
+    <resourceUri>TransformStockNews</resourceUri>
+  </DataSource>
+</dataSources>
+<calculationViews>
+  <calculationView xsi:type="Calculation:ProjectionView" id="FlexClaclulateHistData" filterExpressionLanguage="COLUMN_ENGINE">
+    <viewAttributes>
+      <viewAttribute id="Date"/>
+      <viewAttribute id="StockName"/>
+      <viewAttribute id="Close"/>
+      <viewAttribute id="1LEADClose"/>
+      <viewAttribute id="7LEADClose"/>
+      <viewAttribute id="32LEADClose"/>
+      <viewAttribute id="MinClose"/>
+      <viewAttribute id="MaxClose"/>
+      <viewAttribute id="RDclose"/>
+      <viewAttribute id="Procentile"/>
+      <viewAttribute id="DevFlexClose"/>
+      <viewAttribute id="AVGYearClose"/>
+      <viewAttribute id="SESClose"/>
+    </viewAttributes>
+    <calculatedViewAttributes/>
+    <input node="calculateFlexWindowGrow"/>
+    <filter>('$$PRONCENTILE_FILTER$$' = 'YES' AND &quot;RDclose&quot; &gt; &quot;Procentile&quot;) or
+('$$PRONCENTILE_FILTER$$' = 'NO' AND isnull(&quot;RDclose&quot;) = 0 )</filter>
+  </calculationView>
+  <calculationView xsi:type="Calculation:ProjectionView" id="TransformNews">
+    <viewAttributes>
+      <viewAttribute id="PublishDate"/>
+      <viewAttribute id="RelatedTickets"/>
+      <viewAttribute id="UID"/>
+    </viewAttributes>
+    <calculatedViewAttributes/>
+    <input node="TransformStockNews"/>
+  </calculationView>
+  <calculationView xsi:type="Calculation:JoinView" id="JoinNewsHistoryData" cardinality="CN_N" dynamic="true" joinType="leftOuter">
+    <viewAttributes>
+      <viewAttribute id="Date"/>
+      <viewAttribute id="StockName"/>
+      <viewAttribute id="Close" aggregationType="sum"/>
+      <viewAttribute id="1LEADClose" aggregationType="sum"/>
+      <viewAttribute id="7LEADClose" aggregationType="sum"/>
+      <viewAttribute id="32LEADClose" aggregationType="sum"/>
+      <viewAttribute id="MinClose" aggregationType="sum"/>
+      <viewAttribute id="MaxClose" aggregationType="sum"/>
+      <viewAttribute id="RDclose" aggregationType="sum"/>
+      <viewAttribute id="Procentile" aggregationType="sum"/>
+      <viewAttribute id="DevFlexClose" aggregationType="sum"/>
+      <viewAttribute id="AVGYearClose" aggregationType="sum"/>
+      <viewAttribute id="SESClose" aggregationType="sum"/>
+      <viewAttribute id="UIDNews"/>
+    </viewAttributes>
+    <calculatedViewAttributes/>
+    <input node="FlexClaclulateHistData">
+      <mapping xsi:type="Calculation:AttributeMapping" target="Date" source="Date"/>
+      <mapping xsi:type="Calculation:AttributeMapping" target="StockName" source="StockName"/></input>
+    <input node="TransformNews">
+      <mapping xsi:type="Calculation:AttributeMapping" target="UIDNews" source="UID"/>
+      <mapping xsi:type="Calculation:AttributeMapping" target="Date" source="PublishDate"/>
+      <mapping xsi:type="Calculation:AttributeMapping" target="StockName" source="RelatedTickets"/>
+    </input>
+    <joinAttribute name="Date"/>
+    <joinAttribute name="StockName"/>
+  </calculationView>
+</calculationViews>
+<logicalModel id="JoinNewsHistoryData">
+  <attributes>
+    <attribute id="Date" order="1" displayAttribute="false" attributeHierarchyActive="false">
+      <descriptions defaultDescription="Date"/>
+      <keyMapping columnObjectName="JoinNewsHistoryData" columnName="Date"/>
+    </attribute>
+    <attribute id="StockName" order="2" displayAttribute="false" attributeHierarchyActive="false">
+      <descriptions defaultDescription="StockName"/>
+      <keyMapping columnObjectName="JoinNewsHistoryData" columnName="StockName"/>
+    </attribute>
+    <attribute id="UIDNews" order="3" displayAttribute="false" attributeHierarchyActive="false">
+      <descriptions defaultDescription="UID"/>
+      <keyMapping columnObjectName="JoinNewsHistoryData" columnName="UIDNews"/>
+    </attribute>
+    <attribute id="MinClose" order="8" displayAttribute="false" attributeHierarchyActive="false">
+      <descriptions defaultDescription="MinClose"/>
+      <keyMapping columnObjectName="JoinNewsHistoryData" columnName="MinClose"/>
+    </attribute>
+    <attribute id="MaxClose" order="9" displayAttribute="false" attributeHierarchyActive="false">
+      <descriptions defaultDescription="MaxClose"/>
+      <keyMapping columnObjectName="JoinNewsHistoryData" columnName="MaxClose"/>
+    </attribute>
+  </attributes>
+  <calculatedAttributes/>
+  <baseMeasures>
+    <measure id="Close" order="4" aggregationType="sum" measureType="simple">
+      <descriptions defaultDescription="Close"/>
+      <measureMapping columnObjectName="JoinNewsHistoryData" columnName="Close"/>
+    </measure>
+    <measure id="1LEADClose" order="5" aggregationType="sum" measureType="simple">
+      <descriptions defaultDescription="1LEADClose"/>
+      <measureMapping columnObjectName="JoinNewsHistoryData" columnName="1LEADClose"/>
+    </measure>
+    <measure id="7LEADClose" order="6" aggregationType="sum" measureType="simple">
+      <descriptions defaultDescription="7LEADClose"/>
+      <measureMapping columnObjectName="JoinNewsHistoryData" columnName="7LEADClose"/>
+    </measure>
+    <measure id="32LEADClose" order="7" aggregationType="sum" measureType="simple">
+      <descriptions defaultDescription="32LEADClose"/>
+      <measureMapping columnObjectName="JoinNewsHistoryData" columnName="32LEADClose"/>
+    </measure>
+    <measure id="RDclose" order="10" aggregationType="sum" measureType="simple">
+      <descriptions defaultDescription="RDclose"/>
+      <measureMapping columnObjectName="JoinNewsHistoryData" columnName="RDclose"/>
+    </measure>
+    <measure id="Procentile" order="11" aggregationType="avg" measureType="simple">
+      <descriptions defaultDescription="Procentile"/>
+      <measureMapping columnObjectName="JoinNewsHistoryData" columnName="Procentile"/>
+    </measure>
+    <measure id="DevFlexClose" order="12" aggregationType="avg" measureType="simple">
+      <descriptions defaultDescription="DevFlexClose"/>
+      <measureMapping columnObjectName="JoinNewsHistoryData" columnName="DevFlexClose"/>
+    </measure>
+    <measure id="AVGYearClose" order="13" aggregationType="avg" measureType="simple">
+      <descriptions defaultDescription="AVGYearClose"/>
+      <measureMapping columnObjectName="JoinNewsHistoryData" columnName="AVGYearClose"/>
+    </measure>
+    <measure id="SESClose" order="14" aggregationType="sum" measureType="simple">
+      <descriptions defaultDescription="SESClose"/>
+      <measureMapping columnObjectName="JoinNewsHistoryData" columnName="SESClose"/>
+    </measure>
+  </baseMeasures>
+  <calculatedMeasures/>
+  <restrictedMeasures/>
+  <localDimensions/>
+</logicalModel>
+<layout>
+  <shapes>
+    <shape expanded="true" modelObjectName="Output" modelObjectNameSpace="MeasureGroup">
+      <upperLeftCorner x="221" y="112"/>
+    
+      <rectangleSize width="160"/>
+    </shape>
+  
+    <shape expanded="true" modelObjectName="FlexClaclulateHistData" modelObjectNameSpace="CalculationView">
+      <upperLeftCorner x="92" y="376"/>
+      <rectangleSize height="30" width="160"/>
+    </shape>
+    <shape expanded="true" modelObjectName="TransformNews" modelObjectNameSpace="CalculationView">
+      <upperLeftCorner x="302" y="376"/>
+      <rectangleSize height="30" width="160"/>
+    </shape>
+    <shape expanded="true" modelObjectName="JoinNewsHistoryData" modelObjectNameSpace="CalculationView">
+      <upperLeftCorner x="221" y="217"/>
+      <rectangleSize height="30" width="160"/>
+    </shape>
+    <shape modelObjectName="FlexClaclulateHistData" modelObjectNameSpace="JoinNewsHistoryData" modelObjectType="JoinNodeInput">
+      <upperLeftCorner x="20" y="30"/>
+      <rectangleSize width="193"/>
+    </shape>
+    <shape modelObjectName="TransformNews" modelObjectNameSpace="JoinNewsHistoryData" modelObjectType="JoinNodeInput">
+      <upperLeftCorner x="320" y="30"/>
+      <rectangleSize width="158"/>
+    </shape>
+  </shapes>
+</layout>
+</Calculation:scenario>

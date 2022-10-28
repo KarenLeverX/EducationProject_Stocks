@@ -1,0 +1,56 @@
+FUNCTION "calculateFlexWindowGrow"(in procentile DEC(5,3) )
+       RETURNS TABLE (
+       	"Date" Date,
+       	"StockName" NVARCHAR(10),
+		"Close" DEC(25,3),
+		"MinClose" DEC(25,3),
+		"MaxClose" DEC(25,3),
+		"RDclose"     DEC(25,3),
+		"Procentile"  DEC(25,3),
+		"SESClose"   DEC(25,3),
+		"DevFlexClose" DEC(25,3),
+		"1LEADClose"  DEC(25,3),
+		"7LEADClose" DEC(25,3),
+		"32LEADClose" DEC(25,3),
+		"AVGYearClose" DEC(25,3)
+       ) 
+       LANGUAGE SQLSCRIPT 
+       SQL SECURITY INVOKER AS 
+BEGIN 
+    /*****************************
+        Write your function logic
+    ****************************/
+    lt_HistoryConvert = SELECT
+		    					"Date","StockName","Close","MinClose","MaxClose",
+								round(((("MaxClose" -"MinClose")/"MinClose") *100), 3) AS "RDclose",
+								"SESClose","DevFlexClose", "1LEADClose", "7LEADClose", "32LEADClose","AVGYearClose"
+						FROM(
+						    SELECT
+			                       "Date","StockName",ROUND("Close",3) AS "Close",
+								   MIN(ROUND("Close",3)) OVER (PARTITION BY "StockName" ORDER BY "Date" DESC ROWS BETWEEN CURRENT ROW AND 10 FOLLOWING)   AS "MinClose",
+								   MAX(ROUND("Close",3)) OVER (PARTITION BY "StockName" ORDER BY "Date" DESC ROWS BETWEEN CURRENT ROW AND 10 FOLLOWING)   AS "MaxClose",
+								   SERIES_FILTER(VALUE => ROUND("Close",3), METHOD_NAME => 'SINGLESMOOTH', ALPHA => 0.1) OVER (PARTITION BY "StockName" ORDER BY "Date" ASC) AS "SESClose",
+								   STDDEV_SAMP(ROUND("Close",3)) OVER (PARTITION BY "StockName" ORDER BY "Date" DESC ROWS BETWEEN CURRENT ROW AND 10 FOLLOWING)   AS "DevFlexClose",
+								   LEAD(ROUND("Close",3),1,ROUND("Close",3)) OVER (PARTITION BY "StockName" ORDER BY "Date" DESC)   AS "1LEADClose",
+								   LEAD(ROUND("Close",3),7, 0) OVER (PARTITION BY "StockName" ORDER BY "Date" DESC)   AS "7LEADClose",
+								   LEAD(ROUND("Close",3),32,0) OVER (PARTITION BY "StockName" ORDER BY "Date" DESC)   AS "32LEADClose",
+								   AVG(ROUND("Close",3)) OVER (PARTITION BY "StockName", YEAR("Date"))   AS "AVGYearClose"
+							FROM  "HistoryData") ORDER BY "Date" DESC;
+	RETURN
+	SELECT   
+	        "Date",
+			"StockName",
+			"Close",
+			"MinClose",
+			"MaxClose",
+			"RDclose",
+			ROUND(PERCENTILE_DISC(:procentile) WITHIN GROUP (ORDER BY "RDclose") OVER (PARTITION BY "StockName"),3) AS "Procentile",
+			"SESClose",
+			"DevFlexClose",
+			"1LEADClose",
+			"7LEADClose",
+			"32LEADClose",
+			"AVGYearClose"
+			FROM :lt_HistoryConvert
+			ORDER BY "Date" DESC;
+END;

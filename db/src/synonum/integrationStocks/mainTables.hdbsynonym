@@ -47,5 +47,12 @@
       "schema": "STOCKS_INTEGRATION_STOCKS_INTEGRATION_HDI_CONTAINER_1",
       "database": "SYSTEMDB"
     }
+  },
+  "TransformStockNews": {
+    "target": {
+      "object": "Custom.TransformStockNews",
+      "schema": "STOCKS_INTEGRATION_STOCKS_INTEGRATION_HDI_CONTAINER_1",
+      "database": "SYSTEMDB"
+    }
   }
 }

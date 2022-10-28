@@ -1,0 +1,37 @@
+PROCEDURE "FlexCalculateGrow"(IN DAILLY_RANGE SMALLINT,IN PROCENTILE DEC(25,3), OUT lc_tab TABLE(
+	    "Date" Date,
+       	"StockName" NVARCHAR(10),
+		"Close" DEC(25,3),
+		"MinClose" DEC(25,3),
+		"MaxClose" DEC(25,3),
+		"RDclose" DEC(25,3),
+		"Procentile"  DEC(25,3)
+) )
+   LANGUAGE SQLSCRIPT
+   SQL SECURITY INVOKER
+   --DEFAULT SCHEMA <default_schema_name>
+    AS
+BEGIN
+   /*************************************
+       Write your procedure logic 
+   *************************************/
+   EXEC 				'SELECT' ||
+		    					'"Date","StockName","Close","MinClose","MaxClose",' ||
+								'round(((("MaxClose" -"MinClose")/"MinClose") *100), 3) AS "RDclose", 0 AS "Procentile" ' ||
+						'FROM(' ||
+						    'SELECT' ||
+			                       '"Date","StockName",ROUND("Close",3) AS "Close",' ||
+								   'MIN(ROUND("Close",3)) OVER (PARTITION BY "StockName" ORDER BY "Date" ASC ROWS BETWEEN CURRENT ROW AND '||:DAILLY_RANGE ||' FOLLOWING) AS "MinClose",' ||
+								   'MAX(ROUND("Close",3)) OVER (PARTITION BY "StockName" ORDER BY "Date" ASC ROWS BETWEEN CURRENT ROW AND '||:DAILLY_RANGE ||' FOLLOWING) AS "MaxClose"'  ||
+							'FROM  "HistoryData") ORDER BY "Date" ASC' INTO lc_tab;
+							
+   lc_tab = SELECT   
+		            "Date",
+					"StockName",
+					"Close",
+					"MinClose",
+					"MaxClose",
+					"RDclose",
+					ROUND(PERCENTILE_DISC(:PROCENTILE) WITHIN GROUP (ORDER BY "RDclose") OVER (PARTITION BY "StockName"),3) AS "Procentile"
+			FROM :lc_tab ORDER BY "Date" ASC;
+END
