@@ -1,0 +1,4 @@
+service {
+    "CV_LAG_ANALYSIS_01" as "AnalysisStocks"
+    keys("Date", "StockName") parameters via entity;
+}

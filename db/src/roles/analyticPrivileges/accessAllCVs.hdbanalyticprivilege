@@ -4,5 +4,5 @@
 <securedModels>
   <modelUri>CV_LAG_ANALYSIS_01</modelUri>
 </securedModels>
-<whereSql>(CURRENT_DATE BETWEEN '2022-10-28 00:00:00.000' AND '2022-10-28 23:59:59.999') </whereSql>
-</Privilege:analyticPrivilege>
+<whereSql>(CURRENT_DATE BETWEEN '2022-10-30 00:00:00.000' AND '2099-10-30 23:59:59.999') </whereSql>
+</Privilege:analyticPrivilege>  

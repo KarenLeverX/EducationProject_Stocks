@@ -17,18 +17,30 @@ modules:
         properties:
           key: StockIntegration
           service: '~{hdi-container-name}'
-  - name: Stocks-srv
+  
+  - name: core_xsjs
     type: nodejs
-    path: srv
-    parameters:
-      memory: 512M
-      disk-quota: 256M
+    path: core_xsjs
     provides:
-      - name: srv_api
+      - name: core_xsjs_api
         properties:
           url: '${default-url}'
     requires:
+      - name: Stocks-db
       - name: Stocks-hdi-container
+      - name: app-uaa
+  - name: core_web
+    type: html5
+    path: core_web
+    requires:
+      - name: app-uaa
+      - name: core_xsjs_api
+        group: destinations
+        properties:
+          name: core-xsjs-backend
+          url: '~{url}'
+          forwardAuthToken: true
+    properties: {}
 resources:
   - name: Stocks-hdi-container
     type: com.sap.xs.hdi-container
@@ -40,3 +52,7 @@ resources:
     properties:
       hdi-container-name: '${service-name}'
     type: org.cloudfoundry.existing-service
+  - name: app-uaa
+    type: com.sap.xs.uaa-space
+    parameters:
+      path: xs-security.json
