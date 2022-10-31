@@ -97,13 +97,13 @@
 </calculationViews>
 <logicalModel id="JoinNewsHistoryData">
   <attributes>
-    <attribute id="Date" order="1" displayAttribute="false" attributeHierarchyActive="false">
-      <descriptions defaultDescription="Date"/>
-      <keyMapping columnObjectName="JoinNewsHistoryData" columnName="Date"/>
-    </attribute>
-    <attribute id="StockName" order="2" displayAttribute="false" attributeHierarchyActive="false">
+    <attribute id="StockName" order="1" displayAttribute="false" attributeHierarchyActive="false">
       <descriptions defaultDescription="StockName"/>
       <keyMapping columnObjectName="JoinNewsHistoryData" columnName="StockName"/>
+    </attribute>
+    <attribute id="Date" order="2" displayAttribute="false" attributeHierarchyActive="false">
+      <descriptions defaultDescription="Date"/>
+      <keyMapping columnObjectName="JoinNewsHistoryData" columnName="Date"/>
     </attribute>
     <attribute id="UIDNews" order="3" displayAttribute="false" attributeHierarchyActive="false">
       <descriptions defaultDescription="UID"/>
@@ -159,6 +159,10 @@
   </baseMeasures>
   <calculatedMeasures/>
   <restrictedMeasures/>
+  <sortAttributes>
+    <sortAttribute id="Date" direction="DESC"/>
+    <sortAttribute id="StockName" direction="DESC"/>
+  </sortAttributes>
   <localDimensions/>
 </logicalModel>
 <layout>
